@@ -10,7 +10,7 @@
   pwsh -File scripts/host_smoke.ps1 -DryRun     # install + core check only, no agent is started
 #>
 param(
-  [ValidateSet('copilot', 'opencode', 'agy', 'codex', 'claude')][string[]]$Target = @(),
+  [string]$Target = '',   # comma separated: copilot,opencode,agy,codex,claude (a string because `pwsh -File` does not split lists)
   [string]$Python = 'python',
   [string]$Sha = '',
   [string]$OpenCodeModel = 'opencode/big-pickle',
@@ -22,8 +22,12 @@ if (-not $Sha) { $Sha = (git ls-remote "https://github.com/$repo" HEAD).Split("`
 $agentId = @{ copilot = 'github-copilot'; opencode = 'opencode'; agy = 'antigravity'; codex = 'codex'; claude = 'claude-code' }
 $writerName = @{ copilot = 'copilot'; opencode = 'opencode'; agy = 'antigravity'; codex = 'codex'; claude = 'claude-code' }
 $results = @()
-if ($DryRun -and -not $Target) { $Target = @('codex') }
-foreach ($h in $Target) {
+$valid = @('copilot', 'opencode', 'agy', 'codex', 'claude')
+$targets = @($Target -split '[,\s]+' | Where-Object { $_ })
+if ($DryRun -and -not $targets) { $targets = @('codex') }
+foreach ($bad in ($targets | Where-Object { $valid -notcontains $_ })) { throw "Unknown target '$bad'. Valid: $($valid -join ', ')" }
+if (-not $targets) { throw "Pass -Target <comma separated: $($valid -join ', ')> or -DryRun" }
+foreach ($h in $targets) {
   $dir = Join-Path $env:TEMP ("ahm-smoke-$h-" + [guid]::NewGuid().ToString('n').Substring(0, 6))
   New-Item -ItemType Directory $dir | Out-Null
   Push-Location $dir
