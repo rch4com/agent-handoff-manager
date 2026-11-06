@@ -1,25 +1,31 @@
 # Release gates (pilot vs stable)
 
-## Pilot readiness (included in this package)
+State as of 2026-11-07. `[x]` = evidence exists in `PROJECT_TRACKER.md`; `[ ]` = not done or not verified.
 
-- [x] Deterministic local CLI for init/write/list/resume/archive/restore/doctor
-- [x] Schema v1 and explicit host payload boundary
-- [x] Local exclusive write lock, atomic metadata replacement, revision conflict rejection
-- [x] Common secret pattern rejection, path traversal checks, read-only resume
-- [x] Unit tests for lifecycle, conflicts, security and interrupted transition detection
-- [x] Upstream monitor flags an unpinned baseline separately from genuine updates
-- [ ] Real five-host adapters and end-to-end permission checks
-- [ ] Verified upstream pins after license/source review
-- [ ] Remote skill installation, packaged self-contained runtime and upgrade tests
+## Pilot readiness
+
+- [x] Deterministic local CLI: init/write/list/resume/archive/restore/doctor/import-legacy (`--depth`, list filters, `--dry-run`)
+- [x] Schema v1 + explicit host payload boundary (`docs/SCHEMA_SPEC.md`)
+- [x] Local exclusive write lock, atomic metadata replacement, revision conflict rejection, 6-process concurrency tests
+- [x] Secret pattern rejection (16 fake shapes), path traversal checks, read-only resume, symlink rejection
+- [x] Durable state (`AGENT_HANDOFF.md`, `.agent-handoff/`) read first and never modified; session claims never official
+- [x] Upstream SHAs pinned after license/source review; impact analysis report; PR adoption checklist
+- [x] Self-contained skill package (core inside the skill folder); gh skill + npx skills remote install verified (Windows 11)
+- [x] Unit tests on Windows + Linux in CI (Python 3.10, 3.12)
+- [x] Host smoke on Windows 11: Claude Code, Codex, OpenCode, Antigravity, Copilot CLI (see `docs/COMPATIBILITY.md` for exact scope)
 
 ## Stable v1.0 blockers
 
-- [ ] Complete supported host adapters with real session handoffs on each platform (including Copilot cloud)
-- [ ] Stronger schema validation and a tested backward-compatible migration procedure
-- [ ] Multi-process and crash-injection tests, durability review on Windows and network filesystems
-- [ ] Verified secret scanning and manual privacy/security assessment
-- [ ] Versioned distribution, checksums, install/update/rollback and clean-machine smoke tests
-- [ ] Source attribution and licensing cleared; all adopted upstream SHAs pinned by reviewed PR
-- [ ] Security threat model reviewed against prompt injection and untrusted handoff records
+- [ ] write + resume verified on **every** host (missing: write on OpenCode/Antigravity/Copilot CLI) and on Linux/macOS hosts
+- [ ] Copilot VS Code Agent Mode and Copilot Cloud Agent end-to-end (not tested)
+- [ ] Crash-injection tests (kill between metadata rewrite and rename; durability on network filesystems)
+- [ ] Distributed coordination across worktrees/machines beyond OS locks and revision checks (explicitly out of scope for v1.0 per INTENTS.md; must be documented, not implied)
+- [ ] Secret screening beyond patterns (entropy/PII) or an explicit accepted-risk decision; manual privacy review
+- [ ] Release tag, checksums/signature policy, GitHub Release artifact, tag protection, `gh skill update` receiving a new tagged version
+- [ ] Clean-machine onboarding run by someone other than the author (new user -> install -> write/resume -> upgrade -> uninstall)
+- [ ] ④ durable-state parsing/approval workflow (P3 only reads and proposes), ④ compaction vs ③ archive on a real ④ project
+- [ ] Real ③-generated legacy documents imported (fixture is hand-written)
+- [ ] Threat model reviewed against prompt injection through handoff records (resume never executes them; needs adversarial test with real hosts)
+- [ ] Owner approval for any official marketplace submission
 
-**Status: experimental local pilot. Not a production-ready multi-agent manager.** Test evidence must never be described as host integration or public distribution verification.
+**Status: experimental pilot. Do not declare v1.0 or host support beyond what `docs/COMPATIBILITY.md` marks as verified.**
