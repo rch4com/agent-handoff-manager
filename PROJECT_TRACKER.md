@@ -23,10 +23,10 @@
 | P4-06 | Copilot CLI | IN_PROGRESS | Copilot CLI 1.0.105 / Win11: skill loaded, `resume latest` on gh-installed copy ran (--allow-tool=shell), mission+writer+git diff correct, validation reported unverified | 미지정 | write via Copilot; Linux |
 | P4-07 | Copilot Cloud Agent | TODO | Needs pushed repo + Cloud Agent task; owner approval | 미지정 | After push approval |
 | P4-08 | gh skill / npx skills 배포 | NEEDS_REVIEW | gh 2.103.3 (upgraded via winget): `gh skill publish --dry-run` OK; `gh skill preview` + `install --agent github-copilot|claude-code|codex|opencode|antigravity --scope project` from public rch4com/agent-handoff-manager@137799a OK (.agents/skills, .claude/skills); installed copy ran init/write/list/doctor; `npx skills add rch4com/agent-handoff-manager` OK. Not yet: `--pin` tag, update, uninstall, Linux | 미지정 | Tag release + pin/update/uninstall test; Linux run |
-| P5-01 | 업스트림 변경 **감지 초안** | NEEDS_REVIEW | `check_upstreams.py` live run 2026-11-06 both up_to_date; unit tests | 미지정 | Verify workflow on GitHub after push |
-| P5-02 | 변경 영향분석/PR 흐름 | TODO | 없음 | 미지정 | 구현 |
+| P5-01 | 업스트림 변경 **감지 초안** | NEEDS_REVIEW | `check_upstreams.py` live run both up_to_date; GitHub workflow_dispatch run 42254700976 success; unit tests | 미지정 | Scheduled (cron) run observation; issue creation path only exercised by unit logic |
+| P5-02 | 변경 영향분석/PR 흐름 | NEEDS_REVIEW | impact analysis in monitor report (compare metadata only; license/executable/skill-contract/template/docs risk; truncation + API error = high), 4 tests, verified on real aploe range 44f9b29..b6ad33e without touching the lock; `.github/pull_request_template.md` adoption checklist | 미지정 | Issue-creation path on a real change; automatic draft PR is intentionally not implemented (human opens it) |
 | P5-03 | 공개 배포 및 외부 시험 | TODO | 없음 | 미지정 | 구현 |
-| P5-04 | Claude/Copilot Marketplace | TODO | 플랫폼 문서 확인, manifest 미구현 | 미지정 | 별도 플러그인 검증 |
+| P5-04 | Claude/Copilot Marketplace | IN_PROGRESS | Claude: manifests validated (`claude plugin validate .`), remote add/install/core run/uninstall/remove PASS. Copilot: separate format (`plugin.json` + `.github/plugin/marketplace.json`), remote `marketplace add`/`browse`/`install` PASS, installed core runs; agent headless run pending user. Not submitted to any official marketplace | 미지정 | Copilot plugin headless write/resume (user-run); VS Code plugin; official listing needs owner approval |
 | DOC-02 | README/EN/USER_GUIDE 실행 결과 동기화 | NEEDS_REVIEW | tests/test_docs_sync.py: 문서의 모든 서브커맨드/플래그가 실제 CLI에 존재 | 미지정 | INSTALLATION_AND_SHARING/COPILOT_SETUP 재작성 |
 | DOC-01 | 설치/배포/ Copilot 문서 | SCAFFOLD | INSTALLATION_AND_SHARING, COPILOT_SETUP, MARKETPLACES | 미지정 | 실제 설치 후 업데이트 |
 
@@ -49,6 +49,7 @@
 |---|---|---|---|---|---|
 | 2026-11-06 | P0-03 | Win11, py3.14.6 | `python scripts/check_upstreams.py` | both up_to_date | — |
 | 2026-11-06 | P1/P2 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 19 tests OK, 1 skipped | 73c1586 |
+| 2026-11-07 | P5-04 | Win11; claude 2.1.319, copilot 1.0.105 | `claude plugin marketplace add rch4com/agent-handoff-manager` + install/uninstall; `copilot plugin marketplace add …` + `browse` + `install` | both installed; Claude core ran from marketplace clone; Copilot installed 1 skill, core ran | commit 2bcb685; Claude entries removed afterwards, Copilot plugin left installed for user E2E |
 | 2026-11-07 | acceptance #1 | Win11; gh 2.103.3 `--pin 74b9026`; codex 0.165.0 -> Claude Code 2.1.319 | codex write (`--depth rich`, failure_records) then claude `resume latest` in the same repo | id 20261106T163716Z-14b47991a90a: failed attempt, file, validation claim (not_run) preserved; Claude declined to retry sed and listed warnings. Commits/tests are only as good as the payload (claims) | /tmp temp repo ahm-e2e2 (not committed) |
 | 2026-11-07 | CI | GitHub Actions run 42252689698 @0bd9c4b: ubuntu-latest + windows-latest x Python 3.10/3.12 | `python -m unittest discover -s tests -v` + `validate_distribution.py` | success (4/4 jobs). Earlier runs 0851fc8..4dd9951 failed on windows-latest only (R-006) | https://github.com/rch4com/agent-handoff-manager/actions/runs/42252689698 — unit-test evidence on Linux; host E2E on Linux still not run |
 | 2026-11-07 | P3-01 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 68 tests OK, 4 skipped (symlink privilege) | see commit |
