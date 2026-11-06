@@ -51,7 +51,13 @@ def inspect(lock: dict, fetch=fetch_head) -> list[dict]:
     if not isinstance(sources, list) or not sources:
         raise ValueError("No upstream sources configured")
     findings = []
+    seen = set()
     for source in sources:
+        if not isinstance(source, dict) or not isinstance(source.get('id'), str) or not re.fullmatch(r'[a-z][a-z0-9-]{0,62}', source['id']):
+            raise ValueError('Source id must be lowercase kebab-case')
+        if source['id'] in seen:
+            raise ValueError(f"Duplicate source id: {source['id']}")
+        seen.add(source['id'])
         validate_source(source)
         latest = fetch(source["repo"], source["ref"])
         adopted = source["adopted_sha"]
@@ -98,10 +104,12 @@ def main(argv: list[str] | None = None) -> int:
         Path(args.report).write_text(markdown_report(findings), encoding="utf-8")
         if args.json_report:
             Path(args.json_report).write_text(json.dumps(findings, indent=2) + "\n", encoding="utf-8")
-        updates = any(item["status"] != "up_to_date" for item in findings)
+        updates = any(item["status"] == "update_available" for item in findings)
+        baseline = any(item["status"] == "baseline_required" for item in findings)
         if args.github_output:
             with Path(args.github_output).open("a", encoding="utf-8") as output:
                 output.write(f"changes={'true' if updates else 'false'}\n")
+                output.write(f"baseline_required={'true' if baseline else 'false'}\n")
         for item in findings:
             print(f"{item['id']}: {item['status']} ({item['latest_sha'][:12]})")
         return 0

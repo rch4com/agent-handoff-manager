@@ -103,3 +103,7 @@ handoff upstream status
 - **Copilot Cloud Agent:** ensure target repo contains the skill and executable dependency; the developer's personal machine/global install has no guarantee of being available in a cloud checkout.
 - **No run-on-install:** skill installers and marketplace installation should not implicitly execute imported upstream Python code.
 - Marketplace paths/manifests must remain independent from the shared Python core and follow their platform schema.
+
+## Pilot implementation addendum (2026-11-06)
+
+The earlier sections labelled "NOT YET IMPLEMENTED" describe the original roadmap. `scripts/handoff.py` now implements a **subset** as a local pilot: `init`, `write --payload`, `list`, `resume`, `archive --confirm`, `restore --confirm`, `doctor`. It does not implement `--depth`, `--dry-run`, `--status` filters or `upstream status` in that planned syntax. See `docs/PILOT_QUICKSTART.md`, `docs/SCHEMA_SPEC.md`, `docs/RECOVERY_PROTOCOL.md` for the **current** runnable contract. This pilot does not change authoritative long-lived project state or execute payload commands.

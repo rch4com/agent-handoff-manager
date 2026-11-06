@@ -69,3 +69,11 @@ python -m unittest discover -s tests -v
 - [자세한 설치/공유 매뉴얼](docs/INSTALLATION_AND_SHARING.md) · [Copilot 안내](docs/COPILOT_SETUP.md) · [마켓플레이스 정책](docs/MARKETPLACES.md) · [호환성](docs/COMPATIBILITY.md).
 
 `python scripts/validate_distribution.py`로 이 스타터의 문서와 SKILL 메타데이터를 점검할 수 있습니다. 실제 설치 또는 handoff 명령이 동작함을 입증하는 테스트는 아닙니다.
+
+## P0/P1 강화판 — 로컬 파일럿 추가 (2026-11-06)
+
+이 배포물은 **완성된 5개 에이전트 통합 제품이 아닌 개발 키트 + 실행 가능한 로컬 파일럿**입니다. `scripts/handoff.py`로 명시적 JSON payload 기반의 `init/write/list/resume/archive/restore/doctor`를 실행할 수 있습니다. 그러나 플랫폼별 실제 어댑터, 원격 스킬 설치, cross-machine 동기화는 미구현/미검증입니다. 기존 문서에 등장하는 광범위한 명령은 목표 계약일 수 있습니다.
+
+실행 예시: [docs/PILOT_QUICKSTART.md](docs/PILOT_QUICKSTART.md). 규격: [docs/SCHEMA_SPEC.md](docs/SCHEMA_SPEC.md), [docs/ADAPTER_CONTRACT.md](docs/ADAPTER_CONTRACT.md), [docs/RECOVERY_PROTOCOL.md](docs/RECOVERY_PROTOCOL.md), [docs/RELEASE_GATES.md](docs/RELEASE_GATES.md). 테스트: `python -m unittest discover -s tests -v`.
+
+업스트림 lock 파일에 `adopted_sha: null`인 것은 아직 검증/채택되지 않았음을 뜻합니다. 자동으로 임의 SHA를 채우지 않았습니다. 기준선 검토가 필요하지만 이것만으로 새 업데이트 이슈를 만들지 않습니다.

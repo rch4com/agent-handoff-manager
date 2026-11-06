@@ -37,6 +37,22 @@ class UpstreamMonitorTests(unittest.TestCase):
                                 fetch=lambda repo, ref: FIRST)
         self.assertEqual(got[0]["status"], "up_to_date")
 
+    def test_duplicate_ids_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'Duplicate source id'):
+            upstreams.inspect({'schema_version': 1, 'sources': [source(FIRST), source(SECOND)]},
+                              fetch=lambda repo, ref: FIRST)
+
+    def test_unpinned_is_not_a_change_issue(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            lock = Path(tmp) / 'upstreams.json'
+            lock.write_text(json.dumps({'schema_version': 1, 'sources': [source(None)]}), encoding='utf-8')
+            output = Path(tmp) / 'report.md'
+            ghout = Path(tmp) / 'github.txt'
+            with patch.object(upstreams, 'fetch_head', return_value=FIRST):
+                self.assertEqual(0, upstreams.main(['--lock', str(lock), '--report', str(output), '--github-output', str(ghout)]))
+            self.assertIn('changes=false', ghout.read_text())
+            self.assertIn('baseline_required=true', ghout.read_text())
+
     def test_bad_sha_rejected(self):
         with self.assertRaises(ValueError):
             upstreams.inspect({"schema_version": 1, "sources": [source("not-a-sha")]},

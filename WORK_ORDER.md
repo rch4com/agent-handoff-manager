@@ -100,3 +100,7 @@
 - [ ] skill 설치 경로와 plugin 설치 경로에서 중복 인식/명령 충돌이 없는지 점검.
 - [ ] 사용자에게 Release 태그 pin 방법, 후속 update 방법, changelog와 breaking change 안내.
 - [ ] E2E 5개 호스트 + Copilot 3개 표면을 검증하지 않았다면 v1.0.0 호환성 지원을 선언하지 않음.
+
+## 2026-11-06 P0/P1 implementation checkpoint
+
+A conservative local pilot core has been added at `scripts/handoff.py` with schema v1, revision checks, atomic single-file writes, lock, archive/restore and tests. This does **not** complete the five-host adapters, stronger distributed coordination, approved upstream SHA baselines, or packaged remote installation. Track these as unresolved tasks under `docs/RELEASE_GATES.md`; prioritize `docs/ADAPTER_CONTRACT.md`, `docs/SCHEMA_SPEC.md`, `docs/RECOVERY_PROTOCOL.md` before claiming production readiness.

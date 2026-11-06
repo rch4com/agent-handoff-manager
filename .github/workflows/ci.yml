@@ -1,4 +1,4 @@
-name: Starter tests
+name: Pilot unit and distribution tests
 on:
   push:
   pull_request:
@@ -19,5 +19,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Test upstream monitor (offline mocks)
+      - name: Test local runtime, monitor and package (offline)
         run: python -m unittest discover -s tests -v
+      - name: Validate distribution scaffold
+        run: python scripts/validate_distribution.py

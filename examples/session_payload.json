@@ -1,0 +1,13 @@
+{
+  "agent": "codex",
+  "mission": "Implement a feature behind a test",
+  "acceptance_criteria": ["A reproducible test passes"],
+  "completed": [],
+  "in_progress": ["Write a failing test"],
+  "blocked": [],
+  "changed_files": [{"path": "src/example.py", "owner": "codex"}],
+  "decisions": ["Use a backwards-compatible interface"],
+  "failed_attempts": [],
+  "validation": [{"command": "python -m unittest", "result": "not_run", "evidence": ""}],
+  "next_action": "Run the test suite and record results"
+}
