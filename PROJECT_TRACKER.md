@@ -48,6 +48,7 @@
 |---|---|---|---|---|---|
 | 2026-11-06 | P0-03 | Win11, py3.14.6 | `python scripts/check_upstreams.py` | both up_to_date | — |
 | 2026-11-06 | P1/P2 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 19 tests OK, 1 skipped | 73c1586 |
+| 2026-11-07 | P1-01 | Win11, py3.14.6 | `python -m unittest tests.test_crash_recovery` | 5 simulated-interruption tests OK (archive/restore heal by re-run; lock owner reported); 80 tests total OK, 4 skipped | see commit |
 | 2026-11-07 | acceptance #7 | Win11, py3.14.6 | `python -m unittest tests.test_secret_scan` | 16 fake secret shapes rejected in 6 text locations, 6 ordinary sentences accepted, messages never echo the secret; 75 tests total OK | see commit |
 | 2026-11-07 | P4-08 | Win11; gh 2.103.3 | `gh skill install --pin ae0c650`; `gh skill update agent-handoff-manager`; delete `.agents/`; `gh skill install --pin <HEAD>`; `list`, `doctor` | update skipped pinned skill; data in `.handoffs/` survived reinstall, old record readable by new core | temp repo ahm-upd |
 | 2026-11-07 | P5-04 | Win11; claude 2.1.319, copilot 1.0.105 | `claude plugin marketplace add rch4com/agent-handoff-manager` + install/uninstall; `copilot plugin marketplace add …` + `browse` + `install` | both installed; Claude core ran from marketplace clone; Copilot installed 1 skill, core ran | commit 2bcb685; Claude entries removed afterwards, Copilot plugin left installed for user E2E |

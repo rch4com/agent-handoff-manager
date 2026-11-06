@@ -125,6 +125,13 @@ def atomic_json(path, obj):
         if os.path.exists(tmp):
             os.unlink(tmp)
 
+def lock_owner(path):
+    try:
+        return path.read_text(encoding='utf-8', errors='replace').strip()[:120] or 'unknown owner'
+    except OSError:
+        return 'unreadable lock file'
+
+
 class StoreLock:
     def __init__(self, root):
         self.path = home(root) / '.write.lock'
@@ -139,7 +146,7 @@ class StoreLock:
                 return self
             except FileExistsError:
                 if time.monotonic() > deadline:
-                    raise HandoffError('Store is locked; investigate .handoffs/.write.lock (never automatically delete)')
+                    raise HandoffError(f'Store is locked by [{lock_owner(self.path)}]; verify that process is gone, then remove .handoffs/.write.lock yourself (never deleted automatically)')
                 time.sleep(.08)
     def __exit__(self, *_):
         if self.fd is not None:
@@ -605,7 +612,7 @@ def doctor(root):
             info['legacy_unimported'] = sum(1 for f in base.glob('*.md') if f.is_file() and not f.is_symlink())
         return {'ok': False, 'issues': issues + ['Store not initialized (run init)'], 'info': info}
     if (base / '.write.lock').exists():
-        issues.append('Outstanding writer lock; investigate before removing')
+        issues.append(f"Outstanding writer lock [{lock_owner(base / '.write.lock')}]; verify that process is gone before removing")
     for archived in (False, True):
         try:
             directory = bucket(root, archived)

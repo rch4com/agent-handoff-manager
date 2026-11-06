@@ -21,3 +21,14 @@ The exclusive lock coordinates local processes sharing the *same* `.handoffs` pa
 5. Run the same tests on Windows and Linux in CI.
 
 The runtime does not implement automatic rollback journals, cross-machine leases, atomic multi-file transactions, or fully automated crash recovery. These are explicit release blockers for any stronger durability guarantee.
+
+## Verified interruption behavior (tests/test_crash_recovery.py, simulated kills)
+
+| Interruption | Result | Recovery |
+|---|---|---|
+| `rename` fails during archive/restore (e.g. folder locked) | original metadata restored, `doctor` ok | retry |
+| Process killed after metadata rewrite, before the folder move | `doctor` reports `Status/location mismatch`; record still readable | **re-run the same `archive`/`restore --confirm`**: completes and `doctor` is ok |
+| Process killed while creating a new session | existing records untouched; the empty folder is reported by `doctor` as `Unreadable session record` | remove that empty folder after backing it up, or ignore; new writes are unaffected |
+| Process killed while holding `.write.lock` | next writers fail after about 4 s naming the lock owner (`pid=... time=...`); `doctor` reports it | verify the process is gone, remove the lock file **manually**; never automatic |
+
+Real `kill -9`/power-loss durability (fsync ordering, network filesystems) is **not** tested; `os.replace` + `fsync` are used but not proven under such faults.

@@ -18,7 +18,7 @@ State as of 2026-11-07. `[x]` = evidence exists in `PROJECT_TRACKER.md`; `[ ]` =
 
 - [ ] write + resume verified on **every** host (missing: write on OpenCode/Antigravity/Copilot CLI) and on Linux/macOS hosts
 - [ ] Copilot VS Code Agent Mode and Copilot Cloud Agent end-to-end (not tested)
-- [ ] Crash-injection tests (kill between metadata rewrite and rename; durability on network filesystems)
+- [ ] Real process-kill and power-loss durability, network filesystems (simulated interruptions are tested: `docs/RECOVERY_PROTOCOL.md`)
 - [ ] Distributed coordination across worktrees/machines beyond OS locks and revision checks (explicitly out of scope for v1.0 per INTENTS.md; must be documented, not implied)
 - [ ] Secret screening beyond patterns (entropy/PII) or an explicit accepted-risk decision; manual privacy review
 - [ ] Release tag, checksums/signature policy, GitHub Release artifact, tag protection, `gh skill update` receiving a new tagged version
