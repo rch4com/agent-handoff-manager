@@ -90,6 +90,20 @@ class WorktreeTests(unittest.TestCase):
         # no mutation: main store still has exactly one session
         self.assertEqual(1, len(handoff.list_records(self.main)))
 
+    def test_all_worktrees_does_not_duplicate_when_root_given_as_windows_short_path(self):
+        # Regression R-006 (found by GitHub Actions windows-latest): 8.3 short vs long path of the same checkout.
+        if sys.platform != "win32":
+            self.skipTest("Windows-only")
+        import ctypes
+        buf = ctypes.create_unicode_buffer(1024)
+        ctypes.windll.kernel32.GetShortPathNameW(str(self.main), buf, 1024)
+        short = Path(buf.value)
+        if not buf.value or str(short) == str(self.main):
+            self.skipTest("8.3 short names unavailable on this volume")
+        rec = handoff.write(self.main, payload("codex", "dup check"))
+        found = handoff.list_filtered(short, all_worktrees=True)
+        self.assertEqual([rec["id"]], [r["id"] for r in found])
+
     def test_all_worktrees_outside_git_falls_back_to_current_store(self):
         with tempfile.TemporaryDirectory() as plain:
             root = Path(plain)

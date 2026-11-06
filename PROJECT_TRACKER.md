@@ -41,6 +41,7 @@
 | R-003 | SKILL.md가 `python`/`py -3`/`python3` 가정 | Codex 샌드박스에서 WindowsApps alias 실행 불가 -> resume 중단 | 실제 인터프리터 경로 지정 안내 (SKILL.md) | Codex 재실행 resume 성공 (수동 증거; 자동 테스트 불가) |
 | R-004 | `git` stdout을 콘솔 코드페이지(cp949)로 디코딩 | 한글 worktree 경로 깨짐 -> `--all-worktrees`가 해당 checkout 누락 | `git()`가 UTF-8로 디코딩 | `test_all_worktrees_lists_sessions_from_every_checkout_read_only` (fix 제거 시 FAIL 확인) |
 | R-005 | `git status`로 dirty 계산 | 코어 자신의 `.write.lock`/`session.json` 때문에 깨끗한 트리도 항상 dirty=True | `.handoffs/` 제외 pathspec (`observe_git`) | `test_own_store_files_do_not_make_clean_tree_dirty` (fix 제거 시 FAIL 확인) |
+| R-006 | `--all-worktrees`가 root와 git이 알려준 경로를 문자열 비교 | GitHub Actions windows-latest(8.3 짧은 임시 경로)에서 같은 checkout이 두 번 나열됨 (로컬에서는 Windows 짧은 경로를 직접 만들어 재현) | root를 `resolve()`한 뒤 비교 | `test_all_worktrees_does_not_duplicate_when_root_given_as_windows_short_path` (fix 제거 시 FAIL 확인) |
 
 ## 검증 로그
 

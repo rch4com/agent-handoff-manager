@@ -257,6 +257,7 @@ def _day(value, name):
 def worktree_roots(root):
     """Checkout roots of this repository (read-only `git worktree list`); just [root] outside Git."""
     out = git(root, 'worktree', 'list', '--porcelain', '-z')
+    root = root.resolve()  # CI regression R-006: Windows 8.3 short temp paths made root and git's long path look different
     roots = [root]
     for field in (out or '').split('\0'):
         if field.startswith('worktree '):
@@ -274,7 +275,7 @@ def list_filtered(root, status='open', agent=None, since=None, until=None, all_w
     since = _day(since, 'since') if since else None
     until = _day(until, 'until') if until else None
     found = []
-    for checkout in (worktree_roots(root) if all_worktrees else [root]):
+    for checkout in (worktree_roots(root) if all_worktrees else [root.resolve()]):
         try:
             for archived in ((False,) if status == 'open' else (True,) if status == 'archived' else (False, True)):
                 for record in list_records(checkout, archived):
@@ -282,7 +283,7 @@ def list_filtered(root, status='open', agent=None, since=None, until=None, all_w
                         record = dict(record, worktree_root=str(checkout))
                     found.append(record)
         except HandoffError as exc:
-            if checkout == root:
+            if checkout == root.resolve():
                 raise
             print(f'WARNING: skipped worktree {checkout}: {exc}', file=sys.stderr)
     out = []
