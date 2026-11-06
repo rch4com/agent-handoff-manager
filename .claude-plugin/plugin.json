@@ -1,0 +1,10 @@
+{
+  "name": "agent-handoff-manager",
+  "description": "Save and resume verified work-in-progress handoffs between AI coding agents. EXPERIMENTAL pilot; needs Python 3.10+.",
+  "version": "0.2.0",
+  "author": { "name": "rch4com" },
+  "homepage": "https://github.com/rch4com/agent-handoff-manager",
+  "repository": "https://github.com/rch4com/agent-handoff-manager",
+  "license": "MIT",
+  "keywords": ["handoff", "multi-agent", "resume", "session"]
+}

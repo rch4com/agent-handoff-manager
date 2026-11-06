@@ -1,0 +1,14 @@
+{
+  "name": "agent-handoff-manager-copilot",
+  "metadata": { "description": "Experimental agent-handoff-manager plugin (GitHub Copilot marketplace format)", "version": "0.2.0" },
+  "owner": { "name": "rch4com" },
+  "plugins": [
+    {
+      "name": "agent-handoff-manager",
+      "description": "Save and resume verified work-in-progress handoffs between AI coding agents. EXPERIMENTAL pilot.",
+      "version": "0.2.0",
+      "license": "MIT",
+      "source": { "source": "github", "repo": "rch4com/agent-handoff-manager", "path": ".", "ref": "main" }
+    }
+  ]
+}

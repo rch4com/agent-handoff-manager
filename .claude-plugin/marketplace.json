@@ -1,0 +1,14 @@
+{
+  "name": "agent-handoff-manager-marketplace",
+  "owner": { "name": "rch4com" },
+  "metadata": { "description": "Experimental agent-handoff-manager plugin (Claude Code marketplace format)" },
+  "plugins": [
+    {
+      "name": "agent-handoff-manager",
+      "source": "./",
+      "description": "Save and resume verified work-in-progress handoffs between AI coding agents. EXPERIMENTAL pilot.",
+      "version": "0.2.0",
+      "license": "MIT"
+    }
+  ]
+}
