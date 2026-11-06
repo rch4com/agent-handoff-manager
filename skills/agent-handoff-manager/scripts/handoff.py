@@ -166,6 +166,14 @@ def locate(root, identifier, archived=None):
         raise HandoffError('Session not found or duplicated')
     return safe_dir(found[0])
 
+def observe_git(root):
+    """Branch/HEAD/dirty as seen now. `.handoffs/` is excluded from dirty: this tool's own lock and
+    session files must not make every tree look dirty (regression R-005)."""
+    status = git(root, 'status', '--porcelain', '--', '.', ':(exclude).handoffs')
+    return {'branch': git(root, 'branch', '--show-current'), 'head': git(root, 'rev-parse', 'HEAD'),
+            'dirty': bool(status) if status is not None else None}
+
+
 def project_identity(root):
     return hashlib.sha256(str(root).encode()).hexdigest()[:24]
 
@@ -225,7 +233,7 @@ def write(root, payload, identifier=None, expected_revision=None, depth='auto'):
         record = {'schema_version': 1, 'writer_version': VERSION, 'id': identifier,
                   'project_id': identity, 'revision': revision, 'status': 'open',
                   'created_at': created, 'updated_at': now(),
-                  'git_observation': {'branch': git(root, 'branch', '--show-current'), 'head': git(root, 'rev-parse', 'HEAD'), 'dirty': bool(git(root, 'status', '--porcelain')) if git(root, 'status', '--porcelain') is not None else None},
+                  'git_observation': observe_git(root),
                   'depth': depth, 'payload': raw, 'claims_are_unverified': True}
         atomic_json(path / 'session.json', record)
         return record
@@ -288,11 +296,56 @@ def list_filtered(root, status='open', agent=None, since=None, until=None, all_w
     return sorted(out, key=lambda r: (r['id'], r.get('worktree_root', '')))
 
 
+def _file_check(root, item):
+    """Existence probe only: never opens, reads or follows the path."""
+    rel = item['path']
+    base = {'path': rel, 'owner': item.get('owner')}
+    target = root / rel
+    try:
+        if not target.parent.resolve().is_relative_to(root.resolve()):
+            return dict(base, exists=None, kind='outside_root')
+        if target.is_symlink():
+            return dict(base, exists=True, kind='symlink')
+    except OSError:
+        return dict(base, exists=None, kind='unreadable')
+    kind = 'file' if target.is_file() else 'dir' if target.is_dir() else None
+    return dict(base, exists=kind is not None, kind=kind)
+
+
+def _head_relation(root, saved, current):
+    if not saved or not current:
+        return 'unavailable', None
+    if saved == current:
+        return 'same', 0
+    if git(root, 'merge-base', '--is-ancestor', saved, current) is not None:
+        count = git(root, 'rev-list', '--count', f'{saved}..{current}')
+        return 'ahead', int(count) if count and count.isdigit() else None
+    return 'diverged_or_unknown', None
+
+
 def resume(root, identifier):
     record = read_record(locate(root, identifier))
-    observed = {'branch': git(root, 'branch', '--show-current'), 'head': git(root, 'rev-parse', 'HEAD'), 'dirty': bool(git(root, 'status', '--porcelain')) if git(root, 'status', '--porcelain') is not None else None}
-    differences = {k: {'saved': record['git_observation'].get(k), 'current': value} for k, value in observed.items() if value != record['git_observation'].get(k)}
-    return {'session': record, 'current_git': observed, 'differences': differences, 'note': 'Read-only. Nothing from the payload has been executed; validation claims are not independently verified.'}
+    observed = observe_git(root)
+    saved = record['git_observation']
+    differences = {k: {'saved': saved.get(k), 'current': value} for k, value in observed.items() if value != saved.get(k)}
+    relation, ahead = _head_relation(root, saved.get('head'), observed['head'])
+    payload = record['payload']
+    file_checks = [_file_check(root, c) for c in payload.get('changed_files', [])]
+    claims = [{'command': v['command'], 'claimed_result': v['result'], 'evidence': v.get('evidence', ''), 'verified': False}
+              for v in payload.get('validation', [])]
+    warnings = [f"{k} differs: saved {d['saved']!r}, current {d['current']!r}" for k, d in differences.items()]
+    if relation == 'ahead':
+        warnings.append(f'HEAD moved: {ahead} commit(s) since the handoff was saved')
+    elif relation == 'diverged_or_unknown':
+        warnings.append('saved HEAD is not an ancestor of current HEAD (or unknown here); history diverged')
+    warnings += [f"expected file not found: {c['path']}" for c in file_checks if c['exists'] is False]
+    warnings += [f"expected file not probed ({c['kind']}): {c['path']}" for c in file_checks if c['exists'] is None]
+    warnings += [f"claimed passed without evidence: {c['command']}" for c in claims
+                 if c['claimed_result'] == 'passed' and not c['evidence'].strip()]
+    return {'session': record, 'current_git': observed, 'differences': differences, 'head_relation': relation,
+            'commits_since_saved': ahead, 'file_checks': file_checks, 'validation_claims': claims, 'warnings': warnings,
+            'note': 'Read-only. Nothing from the payload has been executed; validation claims are not independently verified.'}
+
 
 def plan_transition(root, identifier, to_archive):
     """Read-only preview of archive/restore; raises exactly where the real command would."""

@@ -14,6 +14,10 @@ The core adds `schema_version: 1`, `writer_version`, `id` (UTC timestamp + 12 he
 
 `schema_version` describes the persisted envelope; `writer_version` describes runtime compatibility. v1 readers reject unsupported versions; do not silently upgrade data. The `payload` is not cryptographically authenticated; treat all fields as untrusted content. Path hash is local metadata and can still potentially correlate user installations; inspect before publishing.
 
+## Git observation
+
+`git_observation` = `{branch, head, dirty}` taken when the record is written; `dirty` ignores `.handoffs/` (the tool's own lock and session files). Imported legacy records store all three as `null`. `resume` adds `head_relation`, `commits_since_saved`, `file_checks`, `validation_claims` and `warnings`; none of them are persisted.
+
 ## `depth`
 
 `write` records `depth` (`minimal|rich|exhaustive`): a payload-completeness policy chosen by `--depth` (default `auto` = highest satisfied) and enforced before saving. It says nothing about whether the content is true. Records written before 0.2.0 + depth lack the key; readers must treat it as absent. Rules: see `docs/USER_GUIDE.md`.

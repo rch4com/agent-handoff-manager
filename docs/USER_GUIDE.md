@@ -53,7 +53,18 @@ python $H --repo . list --all-worktrees         # 같은 저장소의 다른 git
 
 ### resume 결과
 
-`resume`은 `session`, `current_git`, `differences`(저장 당시 대비 branch/head/dirty 차이), `note`를 반환합니다. payload 안의 명령은 실행하지 않으며 `validation.result=passed`도 **검증되지 않은 주장**입니다. 에이전트는 반드시 `git status`/테스트로 별도 확인해야 합니다. 시험에서 Antigravity와 OpenCode는 payload가 주장한 파일이 실제로 없음을 짚어냈습니다.
+`resume`은 읽기 전용이며 아래 키를 반환합니다.
+
+| 키 | 내용 |
+|---|---|
+| `session` | 저장된 레코드 전체(모두 신뢰할 수 없는 주장) |
+| `current_git`, `differences` | 현재 branch/HEAD/dirty와 저장 당시 대비 차이. `dirty`는 `.handoffs/`를 제외하고 계산 |
+| `head_relation`, `commits_since_saved` | `same` / `ahead`(저장 HEAD가 조상, 이후 커밋 수) / `diverged_or_unknown` / `unavailable` |
+| `file_checks` | `changed_files`의 존재 여부만 확인(`file`/`dir`/`symlink`/`outside_root`). 파일을 열거나 symlink를 따라가지 않음 |
+| `validation_claims` | 저장된 검증 주장 목록. 항상 `verified: false`, 명령은 **실행하지 않음** |
+| `warnings` | 사람이 읽는 경고: 차이, HEAD 이동, 없는 파일, 증거 없이 `passed`로 주장한 검증 |
+
+관련 테스트 실행은 에이전트가 사용자 권한 아래 직접 해야 합니다. 시험에서 Antigravity와 OpenCode는 payload가 주장한 파일이 없음을 스스로 짚어냈고, 이제 코어도 `file_checks`/`warnings`로 같은 사실을 제공합니다.
 
 ### 이전 ③ 문서 가져오기
 
