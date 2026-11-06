@@ -75,5 +75,62 @@ class UpstreamMonitorTests(unittest.TestCase):
             self.assertFalse(output.exists())
 
 
+class ImpactAnalysisTests(unittest.TestCase):
+    FILES = [
+        {"filename": "LICENSE", "status": "modified", "additions": 1, "deletions": 1},
+        {"filename": "scripts/maintain_handoff.py", "status": "modified", "additions": 10, "deletions": 2},
+        {"filename": "templates/handoff-watch.mjs", "status": "added", "additions": 50, "deletions": 0},
+        {"filename": "skills/handoff-write/SKILL.md", "status": "modified", "additions": 3, "deletions": 3},
+        {"filename": "README.md", "status": "modified", "additions": 1, "deletions": 0},
+        {"filename": "assets/readme/hero.png", "status": "modified", "additions": 0, "deletions": 0},
+    ]
+
+    def test_classification_and_risk(self):
+        got = {f["file"]: f for f in upstreams.classify_files(self.FILES)}
+        self.assertEqual(("license", "high"), (got["LICENSE"]["category"], got["LICENSE"]["risk"]))
+        self.assertEqual(("executable", "high"), (got["scripts/maintain_handoff.py"]["category"], got["scripts/maintain_handoff.py"]["risk"]))
+        self.assertEqual(("executable", "high"), (got["templates/handoff-watch.mjs"]["category"], got["templates/handoff-watch.mjs"]["risk"]))
+        self.assertEqual(("skill-contract", "medium"), (got["skills/handoff-write/SKILL.md"]["category"], got["skills/handoff-write/SKILL.md"]["risk"]))
+        self.assertEqual("low", got["README.md"]["risk"])
+        self.assertEqual("low", got["assets/readme/hero.png"]["risk"])
+        self.assertEqual("high", upstreams.overall_risk(list(got.values())))
+        self.assertEqual("low", upstreams.overall_risk([got["README.md"]]))
+
+    def test_inspect_attaches_impact_only_for_updates_and_never_fetches_contents(self):
+        calls = []
+
+        def compare(repo, old, new):
+            calls.append((repo, old, new))
+            return self.FILES
+
+        lock = {"schema_version": 1, "sources": [source(FIRST)]}
+        got = upstreams.inspect(lock, fetch=lambda r, ref: SECOND, compare=compare)
+        self.assertEqual([("owner/project", FIRST, SECOND)], calls)
+        self.assertEqual("high", got[0]["impact"]["overall_risk"])
+        report = upstreams.markdown_report(got)
+        self.assertIn("Impact analysis", report)
+        self.assertIn("scripts/maintain_handoff.py", report)
+        self.assertIn("LICENSE", report)
+        self.assertIn("never installs or merges", report)
+        same = upstreams.inspect(lock, fetch=lambda r, ref: FIRST, compare=compare)
+        self.assertNotIn("impact", same[0])
+        self.assertEqual(1, len(calls))
+
+    def test_compare_failure_is_reported_not_hidden(self):
+        def boom(repo, old, new):
+            raise OSError("rate limited")
+
+        got = upstreams.inspect({"schema_version": 1, "sources": [source(FIRST)]}, fetch=lambda r, ref: SECOND, compare=boom)
+        self.assertEqual("update_available", got[0]["status"])
+        self.assertIn("rate limited", got[0]["impact"]["error"])
+        self.assertIn("rate limited", upstreams.markdown_report(got))
+
+    def test_truncated_compare_marks_risk_unknown_high(self):
+        files = [{"filename": f"docs/{i}.md", "status": "modified", "additions": 1, "deletions": 0} for i in range(300)]
+        got = upstreams.inspect({"schema_version": 1, "sources": [source(FIRST)]}, fetch=lambda r, ref: SECOND, compare=lambda *a: files)
+        self.assertTrue(got[0]["impact"]["truncated"])
+        self.assertEqual("high", got[0]["impact"]["overall_risk"])
+
+
 if __name__ == "__main__":
     unittest.main()
