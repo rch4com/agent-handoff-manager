@@ -28,8 +28,7 @@
 | P5-03 | 공개 배포 및 외부 시험 | TODO | 없음 | 미지정 | 구현 |
 | P5-04 | Claude/Copilot Marketplace | IN_PROGRESS | Claude: manifests validated (`claude plugin validate .`), remote add/install/core run/uninstall/remove PASS. Copilot: separate format (`plugin.json` + `.github/plugin/marketplace.json`), remote `marketplace add`/`browse`/`install` PASS, installed core runs; agent headless run pending user. Not submitted to any official marketplace | 미지정 | Copilot plugin headless write/resume (user-run); VS Code plugin; official listing needs owner approval |
 | DOC-02 | README/EN/USER_GUIDE 실행 결과 동기화 | NEEDS_REVIEW | tests/test_docs_sync.py: 문서의 모든 서브커맨드/플래그가 실제 CLI에 존재 | 미지정 | INSTALLATION_AND_SHARING/COPILOT_SETUP 재작성 |
-| DOC-01 | 설치/배포/ Copilot 문서 | SCAFFOLD | INSTALLATION_AND_SHARING, COPILOT_SETUP, MARKETPLACES | 미지정 | 실제 설치 후 업데이트 |
-
+| DOC-01 | 설치/배포/ Copilot 문서 | NEEDS_REVIEW | INSTALLATION_AND_SHARING / COPILOT_SETUP / MARKETPLACES rewritten from executed commands (2026-11-07) | 미지정 | 미검증 항목(update/uninstall, Linux, VS Code, Cloud) 시험 후 갱신 |
 상태: `TODO`, `IN_PROGRESS`, `NEEDS_REVIEW`, `BLOCKED`, `DONE`, `SCAFFOLD`.
 
 ## 반복 시행착오 차단 기록

@@ -2,7 +2,7 @@
 
 ## 대상 배포물
 
-- Public GitHub repo: `YOUR_GITHUB_ID/agent-handoff-manager`
+- Public GitHub repo: `rch4com/agent-handoff-manager`
 - `skills/agent-handoff-manager/SKILL.md` 및 해당 경로 내 모든 실행 리소스
 - 작동하는 Python 공통 코어(배포 방식: vendored/PyPI 등 ADR에서 확정)
 - Windows/Linux 설치·업데이트·제거 및 롤백 정책

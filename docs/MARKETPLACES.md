@@ -8,7 +8,7 @@ Claude Code의 플러그인 marketplace 형식은 `.claude-plugin/marketplace.js
 
 - 개발 시 Claude 공식 marketplace/plugin authoring 문서와 검증 도구의 최신 버전 확인.
 - plugin directory, skill folder, 실행 코어의 상대경로/설치 부작용을 검증.
-- 예시 사용자 흐름은 `/plugin marketplace add YOUR_GITHUB_ID/agent-handoff-manager` 이후 정확한 marketplace name으로 `/plugin install <plugin>@<marketplace>`.
+- 예시 사용자 흐름은 `/plugin marketplace add rch4com/agent-handoff-manager` 이후 정확한 marketplace name으로 `/plugin install <plugin>@<marketplace>`.
 - **매니페스트 포함 (2026-11-07):** `.claude-plugin/plugin.json` + `.claude-plugin/marketplace.json`(`source: "./"`). 별도 복사본 없이 저장소의 `skills/agent-handoff-manager/`를 그대로 사용합니다.
 - 검증: `claude plugin validate .` 통과. 원격 저장소 기준 `claude plugin marketplace add rch4com/agent-handoff-manager` -> `claude plugin install agent-handoff-manager@agent-handoff-manager-marketplace --scope local` -> 설치된 core `--version` 실행 -> uninstall -> marketplace remove 모두 성공(Claude Code 2.1.319, Windows 11). `--plugin-dir`로 로드한 세션에서 `write`/`resume` 실행도 확인.
 - 공식 Anthropic marketplace 등록은 하지 않았습니다(소유자 승인 필요).

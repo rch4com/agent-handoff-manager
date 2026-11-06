@@ -1,6 +1,6 @@
 # GitHub Copilot 지원 계획 및 테스트 매뉴얼
 
-> Copilot 지원은 `SKILL.md` 표준으로 가능하며, **현재 이 패키지는 문서/검증 스캐폴드**입니다. SKILL.md만 있다고 세션 저장 및 Python 백엔드가 실행되는 것은 아닙니다.
+> 상태(2026-11-07): Copilot CLI는 설치·발견·resume을 실제로 확인했고, VS Code Agent와 Cloud Agent는 미검증입니다. 코어는 스킬 폴더에 포함되어 있어 스킬 폴더 전체가 설치되면 실행됩니다 (ADR-0002).
 
 ## A. Copilot for VS Code — Agent Mode
 
@@ -13,7 +13,7 @@
 
 ## B. GitHub Copilot CLI
 
-- 설치: `gh skill install YOUR_GITHUB_ID/agent-handoff-manager agent-handoff-manager --agent github-copilot --scope user` (릴리스 후)
+- 설치: `gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent github-copilot --scope user` (project scope 검증됨)
 - Copilot CLI에서 `/skills list`, `/skills info agent-handoff-manager`, `/skills reload`를 사용해 발견 여부 확인.
 - `copilot` 명령 자체의 설치/권한은 각 사용자의 GitHub Copilot 요금제와 조직 정책을 따름.
 - CLI 명령 참고: https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference
@@ -37,12 +37,12 @@
 - 설치 대상 저장소의 `AGENTS.md`를 임의로 덮어쓰지 말 것. 기존 `copilot-instructions.md`도 자동 덮어쓰기 금지.
 - Copilot instruction 참고: https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions
 
-## E2E 필수 3개 표면
+## E2E 필수 3개 표면 (2026-11-07 상태)
 
 | 표면 | Skill 발견 | Core 실행 | 세션 왕복 | 환경 차이 경고 | 결과 |
 |---|---|---|---|---|---|
-| VS Code Agent Mode | 미검증 | 미구현 | 미검증 | 미검증 | TODO |
-| Copilot CLI | 미검증 | 미구현 | 미검증 | 미검증 | TODO |
-| Copilot Cloud Agent | 미검증 | 미구현 | 미검증 | 미검증 | TODO |
+| VS Code Agent Mode (1.145.1 설치됨) | 미검증 | 미검증 | 미검증 | 미검증 | TODO (대화형 조작 필요) |
+| Copilot CLI 1.0.105 (Windows 11) | `copilot skill list`로 확인 (gh skill/npx 설치본, 플러그인 설치본) | `copilot -p` 실행으로 확인 (resume) | Codex가 쓴 세션을 resume으로 읽음 / write는 미검증 | `differences`와 경고 보고 확인 | 부분 검증 |
+| Copilot Cloud Agent | 미검증 | 미검증 | 미검증 | 미검증 | TODO (대상 저장소에 스킬 커밋 + 이슈 할당 필요) |
 
-모든 결과에 CLI/VS Code 버전, OS, 실제 실행 명령, 스크린샷 또는 로그, 커밋 SHA를 첨부할 것.
+Copilot CLI 헤드리스 실행은 `--allow-tool='shell'`이 필요했고(파이썬 경로 패턴 매칭 실패), 중첩 에이전트 권한 정책상 사용자가 직접 실행한 결과입니다. 상세 로그: `PROJECT_TRACKER.md`.
