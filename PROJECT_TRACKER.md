@@ -12,7 +12,7 @@
 | P2-01 | write | NEEDS_REVIEW | write verified via Claude Code 2.1.319 (haiku) on installed copy; unit tests | 미지정 | `--depth`, ④ change candidates (P3) |
 | P2-02 | resume | NEEDS_REVIEW | resume verified by Codex 0.165.0 reading a Claude-written session (read-only, git diff reported) | 미지정 | Add checks: expected files / tests |
 | P2-03 | list | NEEDS_REVIEW | tests/test_list_filters.py: status/agent/date filters (+invalid input rejected, CLI), `--all-worktrees` over a real `git worktree add` with non-ASCII path (read-only, `worktree_root` tagged); Claude Code list E2E earlier | 미지정 | Project filter n/a (project_id is a path hash); Linux run; crash/perf on many sessions |
-| P2-04 | archive/restore | NEEDS_REVIEW | archive/restore: unit + clean-copy lifecycle test (non-ASCII path) | 미지정 | `--dry-run` |
+| P2-04 | archive/restore | NEEDS_REVIEW | archive/restore `--confirm` + `--dry-run` (mutually exclusive, one required): DryRunTests x3 (plan printed, byte-identical tree, invalid cases fail like real run) + clean-copy lifecycle test | 미지정 | Crash-injection between metadata rewrite and rename; Linux |
 | P2-05 | doctor | NEEDS_REVIEW | doctor: unit + clean-copy test | 미지정 | CLI/path compat checks |
 | P3-01 | 공식 상태와 세션 통합 | TODO | 없음 | 미지정 | 구현 |
 | P4-01 | Claude 어댑터 | IN_PROGRESS | Claude Code 2.1.319 / Win11: skill discovered in `.claude/skills` (npx skills --copy), write+list E2E pass | 미지정 | resume on Claude; macOS/Linux |
@@ -47,6 +47,7 @@
 |---|---|---|---|---|---|
 | 2026-11-06 | P0-03 | Win11, py3.14.6 | `python scripts/check_upstreams.py` | both up_to_date | — |
 | 2026-11-06 | P1/P2 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 19 tests OK, 1 skipped | 73c1586 |
+| 2026-11-07 | P2-04 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 38 tests OK, 1 skipped | see commit |
 | 2026-11-07 | P2-03/DOC-02 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 35 tests OK, 1 skipped; docs-sync test fails when a doc flag is misspelled (mutation checked) | see commit |
 | 2026-11-07 | P1-02 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 26 tests OK, 1 skipped (symlink privilege) | see commit below |
 | 2026-11-06 | P4-08 | Win11, node 26.13, npx skills | `npx skills add D:/…/agent-handoff-manager --skill agent-handoff-manager -a claude-code -a codex -a opencode -a antigravity -a github-copilot --copy -y` | installed `.agents/skills`+`.claude/skills`, identical copies, script runs | scratchpad proj1 |

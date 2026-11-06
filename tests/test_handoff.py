@@ -88,5 +88,50 @@ class HandoffRuntimeTests(unittest.TestCase):
         self.assertEqual(2, r.returncode)
         self.assertTrue(handoff.locate(self.root, identifier).exists())
 
+class DryRunTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.item = handoff.write(self.root, PAYLOAD)
+
+    def run_cli(self, *args):
+        script = str(Path(handoff.__file__).resolve())
+        return subprocess.run([sys.executable, '-I', script, '--repo', str(self.root), *args],
+                              capture_output=True, text=True, encoding='utf-8')
+
+    def snapshot(self):
+        return {str(p.relative_to(self.root)): p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
+
+    def test_archive_dry_run_reports_plan_and_changes_nothing(self):
+        before = self.snapshot()
+        r = self.run_cli('archive', self.item['id'], '--dry-run')
+        self.assertEqual(0, r.returncode, r.stderr)
+        plan = json.loads(r.stdout)
+        self.assertEqual('archive', plan['action'])
+        self.assertTrue(plan['dry_run'])
+        self.assertEqual('open', plan['from_status'])
+        self.assertEqual('archived', plan['to_status'])
+        self.assertTrue(Path(plan['to']).as_posix().endswith('archive/' + self.item['id']))
+        self.assertEqual(before, self.snapshot())
+
+    def test_restore_dry_run_and_invalid_cases(self):
+        handoff.transition(self.root, self.item['id'], True)
+        before = self.snapshot()
+        plan = json.loads(self.run_cli('restore', self.item['id'], '--dry-run').stdout)
+        self.assertEqual(('archived', 'open'), (plan['from_status'], plan['to_status']))
+        self.assertEqual(before, self.snapshot())
+        # archiving something already archived: dry-run must fail like the real command would
+        r = self.run_cli('archive', self.item['id'], '--dry-run')
+        self.assertEqual(2, r.returncode)
+        self.assertEqual(before, self.snapshot())
+
+    def test_confirm_and_dry_run_are_exclusive_and_one_is_required(self):
+        self.assertEqual(2, self.run_cli('archive', self.item['id'], '--dry-run', '--confirm').returncode)
+        r = self.run_cli('archive', self.item['id'])
+        self.assertEqual(2, r.returncode)
+        self.assertIn('--dry-run', r.stderr)
+
+
 if __name__ == '__main__':
     unittest.main()

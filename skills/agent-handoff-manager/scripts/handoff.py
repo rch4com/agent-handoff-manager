@@ -261,6 +261,19 @@ def resume(root, identifier):
     differences = {k: {'saved': record['git_observation'].get(k), 'current': value} for k, value in observed.items() if value != record['git_observation'].get(k)}
     return {'session': record, 'current_git': observed, 'differences': differences, 'note': 'Read-only. Nothing from the payload has been executed; validation claims are not independently verified.'}
 
+def plan_transition(root, identifier, to_archive):
+    """Read-only preview of archive/restore; raises exactly where the real command would."""
+    source = locate(root, identifier, archived=not to_archive)
+    original = read_record(source)
+    destination = bucket(root, to_archive) / identifier
+    if destination.exists():
+        raise HandoffError('Destination already exists')
+    return {'action': 'archive' if to_archive else 'restore', 'dry_run': True, 'id': identifier,
+            'from': str(source), 'to': str(destination), 'from_status': original['status'],
+            'to_status': 'archived' if to_archive else 'open', 'revision_after': original['revision'] + 1,
+            'note': 'Nothing was changed. Re-run with --confirm to apply.'}
+
+
 def transition(root, identifier, to_archive):
     init(root)
     with StoreLock(root):
@@ -471,8 +484,12 @@ def main(argv=None):
     ls.add_argument('--until', metavar='YYYY-MM-DD', help='created_at (UTC date) <= value')
     ls.add_argument('--all-worktrees', action='store_true', help='Also read the stores of other git worktrees (read-only)')
     re = commands.add_parser('resume'); re.add_argument('id')
-    ar = commands.add_parser('archive'); ar.add_argument('id'); ar.add_argument('--confirm', action='store_true')
-    rs = commands.add_parser('restore'); rs.add_argument('id'); rs.add_argument('--confirm', action='store_true')
+    for name in ('archive', 'restore'):
+        tp = commands.add_parser(name)
+        tp.add_argument('id')
+        mode = tp.add_mutually_exclusive_group()
+        mode.add_argument('--confirm', action='store_true', help='Apply the move')
+        mode.add_argument('--dry-run', action='store_true', help='Show the planned move; change nothing')
     commands.add_parser('doctor')
     il = commands.add_parser('import-legacy')
     il.add_argument('--dry-run', action='store_true', help='Report what would be imported; write nothing')
@@ -494,9 +511,12 @@ def main(argv=None):
         elif args.cmd == 'doctor': result = doctor(root)
         elif args.cmd == 'import-legacy': result = import_legacy(root, args.dry_run)
         else:
-            if not args.confirm:
-                raise HandoffError('Explicit --confirm required')
-            result = transition(root, args.id, args.cmd == 'archive')
+            if args.dry_run:
+                result = plan_transition(root, args.id, args.cmd == 'archive')
+            elif not args.confirm:
+                raise HandoffError('Explicit --confirm required (or --dry-run to preview)')
+            else:
+                result = transition(root, args.id, args.cmd == 'archive')
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0 if args.cmd != 'doctor' or result['ok'] else 1
     except (HandoffError, OSError, json.JSONDecodeError, ValueError) as exc:

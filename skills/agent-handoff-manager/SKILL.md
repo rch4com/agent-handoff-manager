@@ -35,7 +35,7 @@ Check runtime first: `python <skill-dir>/scripts/handoff.py --version` (use `pyt
 ## list / archive / restore / doctor
 
 - `list [--status open|archived|all] [--agent NAME] [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--all-worktrees]` — JSON array of session records (`--archived` = `--status archived`; `--all-worktrees` reads other git worktrees read-only).
-- `archive <id> --confirm` and `restore <id> --confirm` — reversible moves; without `--confirm` nothing happens. Ask the user before archiving.
+- `archive <id>` and `restore <id>` with `--dry-run` (prints the plan) or `--confirm` (applies; reversible move). Always dry-run first and ask the user before `--confirm`.
 - `doctor` — checks the store; exit 1 lists issues. Never delete `.handoffs/.write.lock` automatically.
 - `import-legacy [--dry-run]` — copies old `.handoffs/*.md` (claude-handoff-skill format) into sessions; originals untouched; run `--dry-run` first and report skipped files.
 - `init` — creates empty `.handoffs/sessions` and `archive` (idempotent).

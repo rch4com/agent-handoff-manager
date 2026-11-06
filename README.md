@@ -46,7 +46,7 @@ python <skill-dir>/scripts/handoff.py --repo . import-legacy --dry-run
 
 ## 아직 없는 것
 
-`--depth`, `archive --dry-run`, 장기 상태(④) 변경 후보 제안(P3), upstream 영향분석 PR 자동화(P5), Claude/Copilot marketplace manifest, 릴리스 태그/체크섬, Linux 검증. 상세: [docs/RELEASE_GATES.md](docs/RELEASE_GATES.md).
+`--depth`, 장기 상태(④) 변경 후보 제안(P3), upstream 영향분석 PR 자동화(P5), Claude/Copilot marketplace manifest, 릴리스 태그/체크섬, Linux 검증. 상세: [docs/RELEASE_GATES.md](docs/RELEASE_GATES.md).
 
 ## 개발
 

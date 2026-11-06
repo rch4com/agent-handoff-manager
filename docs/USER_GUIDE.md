@@ -16,14 +16,16 @@ python $H --repo . init                 # .handoffs/sessions, .handoffs/archive 
 python $H --repo . write --payload payload.json
 python $H --repo . list                 # 기본: open 세션
 python $H --repo . resume latest        # 읽기 전용
+python $H --repo . archive SESSION_ID --dry-run     # 이동 계획만 출력, 변경 없음
 python $H --repo . archive SESSION_ID --confirm
+python $H --repo . restore SESSION_ID --dry-run
 python $H --repo . restore SESSION_ID --confirm
 python $H --repo . doctor
 python $H --repo . import-legacy --dry-run
 ```
 
 - 모든 정상 출력은 JSON, 오류는 stderr의 `HANDOFF_ERROR: ...`(종료 코드 2). `doctor`는 문제가 있으면 종료 코드 1.
-- `--confirm` 없는 `archive`/`restore`는 `HANDOFF_ERROR: Explicit --confirm required`로 아무 것도 바꾸지 않습니다.
+- `archive`/`restore`는 `--confirm`(적용) 또는 `--dry-run`(계획만 출력) 중 하나가 필수이며 둘은 함께 쓸 수 없습니다. 둘 다 없으면 `HANDOFF_ERROR: Explicit --confirm required (or --dry-run to preview)`로 아무 것도 바꾸지 않습니다.
 - `write`는 대화를 읽지 않습니다. 에이전트가 payload를 만들어 넘깁니다 ([SCHEMA_SPEC.md](SCHEMA_SPEC.md), 예: `examples/session_payload.json`). 기존 세션 갱신은 `--id ID --expected-revision N`.
 
 ### list 필터
@@ -66,4 +68,4 @@ python $H --repo . list --all-worktrees         # 같은 저장소의 다른 git
 
 ## 아직 없는 것
 
-`--depth`, `archive --dry-run`, `upstream status`, 프로젝트 장기 상태(④) 변경 후보 제안(P3), 네이티브 slash command. GitHub Copilot의 VS Code Agent / Cloud Agent 표면은 미검증.
+`--depth`, `upstream status`, 프로젝트 장기 상태(④) 변경 후보 제안(P3), 네이티브 slash command. GitHub Copilot의 VS Code Agent / Cloud Agent 표면은 미검증.

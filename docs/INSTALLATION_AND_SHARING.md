@@ -106,7 +106,7 @@ Copilot 또는 Antigravity에 `-a`로 설치하려면 현재 사용자의 `npx s
 1. `gh skill preview`로 내용 확인 후 설치. 원격 설치 전에 스크립트와 권한을 점검.
 2. 각 에이전트에서 스킬 발견 여부 확인. Copilot CLI는 `/skills list` 또는 `/skills info agent-handoff-manager` 및 `/skills reload`를 활용.
 3. 샘플 프로젝트에 `handoff init --dry-run`을 실행; 기존 AGENTS.md 등 설정이 보존되는지 확인.
-4. 임시 저장소에서 `write -> list -> resume --verify-only -> archive --dry-run -> archive -> restore`를 모두 실행.
+4. 임시 저장소에서 `write -> list -> resume latest -> archive --dry-run -> archive --confirm -> restore --confirm`를 모두 실행.
 5. Copilot VS Code Agent 모드, Copilot CLI, Copilot Cloud Agent는 각각 별도 스모크 테스트. Cloud에는 Python 코어가 포함되거나 사전 설치돼 있어야 함.
 6. Win11/PowerShell과 Ubuntu/Bash에서 설치, 재설치, 업데이트, 제거, 롤백, 비ASCII 경로를 확인.
 7. 검증 시 실제 버전, 명령, 종료 코드, 결과 파일, 테스트 증거를 `PROJECT_TRACKER.md`에 기록.
