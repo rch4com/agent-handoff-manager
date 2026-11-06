@@ -4,10 +4,10 @@
 |---|---|---|---|---|
 | Claude Code 2.1.319 | 검증 (`.claude/skills`) | 검증 | write+list 검증, resume 미검증 | 부분 검증 |
 | Codex CLI 0.165.0 | 검증 (`.agents/skills`) | 검증 (실제 python 경로 필요, R-003) | resume 검증 (Claude 작성 세션 읽기) | 부분 검증 |
-| OpenCode 1.19.4 | 검증 (`opencode debug skill`) | 미실행 | 미검증 | 발견만 검증 |
-| Antigravity agy 1.5.0 | 미검증 | 미검증 | 미검증 | 미검증 |
+| OpenCode 1.19.4 | 검증 (`opencode debug skill`) | 미실행 (`opencode run`이 provider 오류로 실패, 원인 미확정) | 미검증 | 발견만 검증 / BLOCKED |
+| Antigravity agy 1.5.0 | 검증 (`.agents/skills`) | 검증 | resume 검증 (미존재 주장 파일 지적) | 부분 검증 |
 | Copilot VS Code Agent 1.145.1 | 미검증 | 미검증 | 미검증 | 미검증 |
-| Copilot CLI 1.0.105 | 검증 (`copilot skill list`) | 미실행 | 미검증 | 발견만 검증 |
+| Copilot CLI 1.0.105 | 검증 | 검증 | resume 검증, write 미검증 | 부분 검증 |
 | Copilot Cloud Agent | 미검증 | 미검증 | 미검증 | 미검증 (push 승인 필요) |
 
 증거: `PROJECT_TRACKER.md` 검증 로그. Linux/macOS는 전 표면 미검증. 위 표의 "검증"은 로컬 경로에서 `npx skills --copy`로 설치한 사본 기준이며 `gh skill`·공개 원격 설치는 미검증.

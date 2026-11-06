@@ -17,10 +17,10 @@
 | P3-01 | 공식 상태와 세션 통합 | TODO | 없음 | 미지정 | 구현 |
 | P4-01 | Claude 어댑터 | IN_PROGRESS | Claude Code 2.1.319 / Win11: skill discovered in `.claude/skills` (npx skills --copy), write+list E2E pass | 미지정 | resume on Claude; macOS/Linux |
 | P4-02 | Codex 어댑터 | IN_PROGRESS | Codex 0.165.0 / Win11: discovery in `.agents/skills`, cross-agent resume pass (needs real python path; R-003) | 미지정 | write via Codex; Linux |
-| P4-03 | OpenCode 어댑터 | IN_PROGRESS | OpenCode 1.19.4: `opencode debug skill` lists skill (read from `.claude/skills`); not executed | 미지정 | Headless write/resume run |
-| P4-04 | Antigravity 어댑터 | TODO | Antigravity `agy` 1.5.0 installed; not probed | 미지정 | Find skill path; discovery + run |
+| P4-03 | OpenCode 어댑터 | BLOCKED | OpenCode 1.19.4: skill discovered (`opencode debug skill`). `opencode run` failed twice before any tool call: UnknownError err_d7bb4327 / err_48fd9bc1; log shows only expired/quota provider keys from 2026-11-02 -> likely env, root cause unproven | 미지정 | Owner: fix provider auth, rerun resume command |
+| P4-04 | Antigravity 어댑터 | IN_PROGRESS | Antigravity agy 1.5.0 / Win11: discovered skill in `.agents/skills` (gh skill --agent antigravity install), ran `resume latest`, reported mission/writer/git diff and flagged claimed `src/example.py` as absent | 미지정 | write via agy; Linux |
 | P4-05 | Copilot VS Code Agent | TODO | VS Code 1.145.1 present; not run | 미지정 | Needs interactive Agent Mode; manual by owner |
-| P4-06 | Copilot CLI | BLOCKED | Copilot CLI 1.0.105: `copilot skill list` discovers project skill (verified). Headless E2E denied by permission classifier (broad shell for nested agent) | 미지정 | Owner decides: allow narrowly-scoped run or run manually |
+| P4-06 | Copilot CLI | IN_PROGRESS | Copilot CLI 1.0.105 / Win11: skill loaded, `resume latest` on gh-installed copy ran (--allow-tool=shell), mission+writer+git diff correct, validation reported unverified | 미지정 | write via Copilot; Linux |
 | P4-07 | Copilot Cloud Agent | TODO | Needs pushed repo + Cloud Agent task; owner approval | 미지정 | After push approval |
 | P4-08 | gh skill / npx skills 배포 | NEEDS_REVIEW | gh 2.103.3 (upgraded via winget): `gh skill publish --dry-run` OK; `gh skill preview` + `install --agent github-copilot|claude-code|codex|opencode|antigravity --scope project` from public rch4com/agent-handoff-manager@137799a OK (.agents/skills, .claude/skills); installed copy ran init/write/list/doctor; `npx skills add rch4com/agent-handoff-manager` OK. Not yet: `--pin` tag, update, uninstall, Linux | 미지정 | Tag release + pin/update/uninstall test; Linux run |
 | P5-01 | 업스트림 변경 **감지 초안** | NEEDS_REVIEW | `check_upstreams.py` live run 2026-11-06 both up_to_date; unit tests | 미지정 | Verify workflow on GitHub after push |
@@ -50,14 +50,16 @@
 | 2026-11-06 | P4-02 | codex-cli 0.165.0 | `codex exec -s workspace-write` resume latest | 1st run blocked (R-003), 2nd run OK, no diffs vs saved | — |
 | 2026-11-06 | P4-08 | gh 2.103.3 | `gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent <5 ids> --scope project` | installed; core executes | repo @137799a |
 | 2026-11-06 | P4-08 | node 26.13 | `npx skills add rch4com/agent-handoff-manager --skill agent-handoff-manager -a claude-code -a codex --copy -y` | installed | repo @137799a |
-| 2026-11-06 | P4-06 | Copilot CLI 1.0.105 | `copilot skill list` | project skill listed | headless run NOT executed (denied) |
+| 2026-11-06 | P4-06 | Copilot CLI 1.0.105 | `copilot -p '…resume latest…' --allow-tool=shell` (cwd = gh-installed project) | resume OK, correct mission/writer/diff | user-run |
+| 2026-11-06 | P4-04 | agy 1.5.0 | `agy -p '…resume latest…'` | resume OK + flagged missing claimed file | user-run |
+| 2026-11-06 | P4-03 | opencode 1.19.4 | `opencode run '…'` x2 | UnknownError before tool call | not a product pass |
 
 ## Copilot 및 외부 배포 필수 추가 로그
 
 | 호스트 | Skill 발견 | Core 설치/호출 | E2E | 버전/OS/증거 |
 |---|---|---|---|---|
 | Copilot VS Code Agent | TODO | TODO | TODO | — |
-| Copilot CLI | PASS (`copilot skill list`, v1.0.105) | TODO | TODO | 헤드리스 실행 미허용 |
+| Copilot CLI | PASS | PASS (resume) | write 미검증 | v1.0.105, Win11, gh-installed 사본 |
 | Copilot Cloud Agent | TODO | TODO | TODO | — |
 | `gh skill` Public 원격 설치 | PASS (5 agent ids) | PASS (init/write/list/doctor) | TODO | gh 2.103.3, Win11, repo @137799a |
 | `npx skills` Public 원격 설치 | PASS (claude-code, codex) | TODO | TODO | Win11, node 26.13, @137799a |
