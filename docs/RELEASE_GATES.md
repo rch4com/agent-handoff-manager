@@ -26,7 +26,7 @@ State as of 2026-11-07. `[x]` = evidence exists in `PROJECT_TRACKER.md`; `[ ]` =
 - [ ] Clean-machine onboarding run by someone other than the author (new user -> install -> write/resume -> upgrade -> uninstall)
 - [ ] ④ durable-state parsing/approval workflow (P3 only reads and proposes), ④ compaction vs ③ archive on a real ④ project
 - [ ] Documents produced by the real ③ plugin imported (fixtures follow its verbatim bootstrap/template structure but content is invented)
-- [ ] Threat model reviewed against prompt injection through handoff records (resume never executes them; needs adversarial test with real hosts)
+- [ ] Threat model review against prompt injection through handoff records. Done so far: core never executes record text (test); one hostile payload resisted by Claude Code and Codex with canary files (`PROJECT_TRACKER.md`). Missing: more payload variants, the other hosts, a human review
 - [ ] Owner approval for any official marketplace submission
 
 **Status: experimental pilot. Do not declare v1.0 or host support beyond what `docs/COMPATIBILITY.md` marks as verified.**
