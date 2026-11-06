@@ -22,7 +22,7 @@
 | P4-05 | Copilot VS Code Agent | TODO | VS Code 1.145.1 present; not run | 미지정 | Needs interactive Agent Mode; manual by owner |
 | P4-06 | Copilot CLI | BLOCKED | Copilot CLI 1.0.105: `copilot skill list` discovers project skill (verified). Headless E2E denied by permission classifier (broad shell for nested agent) | 미지정 | Owner decides: allow narrowly-scoped run or run manually |
 | P4-07 | Copilot Cloud Agent | TODO | Needs pushed repo + Cloud Agent task; owner approval | 미지정 | After push approval |
-| P4-08 | gh skill / npx skills 배포 | BLOCKED | `npx skills add <local>` list+install --copy verified (-a claude-code codex opencode antigravity github-copilot -> `.agents/skills` + `.claude/skills`). `gh skill`: installed gh 2.87.3 has no `skill` cmd (needs >=2.90). Remote install untested (repo not updated) | 미지정 | Owner: upgrade gh + approve push |
+| P4-08 | gh skill / npx skills 배포 | NEEDS_REVIEW | gh 2.103.3 (upgraded via winget): `gh skill publish --dry-run` OK; `gh skill preview` + `install --agent github-copilot|claude-code|codex|opencode|antigravity --scope project` from public rch4com/agent-handoff-manager@137799a OK (.agents/skills, .claude/skills); installed copy ran init/write/list/doctor; `npx skills add rch4com/agent-handoff-manager` OK. Not yet: `--pin` tag, update, uninstall, Linux | 미지정 | Tag release + pin/update/uninstall test; Linux run |
 | P5-01 | 업스트림 변경 **감지 초안** | NEEDS_REVIEW | `check_upstreams.py` live run 2026-11-06 both up_to_date; unit tests | 미지정 | Verify workflow on GitHub after push |
 | P5-02 | 변경 영향분석/PR 흐름 | TODO | 없음 | 미지정 | 구현 |
 | P5-03 | 공개 배포 및 외부 시험 | TODO | 없음 | 미지정 | 구현 |
@@ -48,6 +48,8 @@
 | 2026-11-06 | P4-08 | Win11, node 26.13, npx skills | `npx skills add D:/…/agent-handoff-manager --skill agent-handoff-manager -a claude-code -a codex -a opencode -a antigravity -a github-copilot --copy -y` | installed `.agents/skills`+`.claude/skills`, identical copies, script runs | scratchpad proj1 |
 | 2026-11-06 | P4-01 | Claude Code 2.1.319 | `claude -p … --model haiku --allowedTools Bash(python:*)…` write+list | session created, id reported | `.handoffs/sessions/20261106T045455Z-61fc48eb5653` |
 | 2026-11-06 | P4-02 | codex-cli 0.165.0 | `codex exec -s workspace-write` resume latest | 1st run blocked (R-003), 2nd run OK, no diffs vs saved | — |
+| 2026-11-06 | P4-08 | gh 2.103.3 | `gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent <5 ids> --scope project` | installed; core executes | repo @137799a |
+| 2026-11-06 | P4-08 | node 26.13 | `npx skills add rch4com/agent-handoff-manager --skill agent-handoff-manager -a claude-code -a codex --copy -y` | installed | repo @137799a |
 | 2026-11-06 | P4-06 | Copilot CLI 1.0.105 | `copilot skill list` | project skill listed | headless run NOT executed (denied) |
 
 ## Copilot 및 외부 배포 필수 추가 로그
@@ -57,5 +59,5 @@
 | Copilot VS Code Agent | TODO | TODO | TODO | — |
 | Copilot CLI | PASS (`copilot skill list`, v1.0.105) | TODO | TODO | 헤드리스 실행 미허용 |
 | Copilot Cloud Agent | TODO | TODO | TODO | — |
-| `gh skill` Public 원격 설치 | TODO | TODO | TODO | — |
-| `npx skills` Public 원격 설치 | TODO (local path OK) | TODO | TODO | 로컬 경로 설치만 검증 |
+| `gh skill` Public 원격 설치 | PASS (5 agent ids) | PASS (init/write/list/doctor) | TODO | gh 2.103.3, Win11, repo @137799a |
+| `npx skills` Public 원격 설치 | PASS (claude-code, codex) | TODO | TODO | Win11, node 26.13, @137799a |
