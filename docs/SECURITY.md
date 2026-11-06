@@ -18,6 +18,12 @@
 7. CI에는 최소 `contents:read`/`issues:write` 등 필요한 permissions만 사용.
 8. 추후 배포 파일은 체크섬과 변경 이력을 제공하고 신뢰 가능한 GitHub 태그를 기준으로 설치.
 
+## Implemented secret screening (pilot, 2026-11-07)
+
+`write` and `import-legacy` **reject** (never silently redact) text matching: GitHub (`ghp_`/`github_pat_`), OpenAI-style `sk-`, AWS `AKIA`, Slack `xox*-`, Google `AIza`, Stripe `sk_/rk_ live|test`, GitLab `glpat-`, npm `npm_`, SendGrid `SG.`, JWT, PEM private-key headers, `Bearer` tokens, `scheme://user:password@` URLs, Azure `AccountKey=`, and `api_key|access_token|secret|password` `=`/`:` assignments (8+ chars). The error message never echoes the matched text. Scope: every payload text field, and the whole text of legacy files. Tests: `tests/test_secret_scan.py` (16 fake secret shapes x 6 field locations; 6 ordinary sentences must pass).
+
+Known gaps: no entropy detection, no `.env` file reading, no PII detection, no screening of `changed_files` contents (paths only), no scanning of already-committed history. The screen reduces risk; a human review before sharing `.handoffs/` is still required.
+
 ## Security review blockers
 
 - 토큰 노출, 자동 임의 명령 실행, 경로 순회, 무단 지우기, 라이선스 누락, 원본 업데이트 즉시 실행, 권한 자동 확대.

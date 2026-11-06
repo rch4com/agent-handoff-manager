@@ -20,7 +20,7 @@ ID_RE = re.compile(r'^\d{8}T\d{6}Z-[0-9a-f]{12}$')
 AGENTS = {'claude-code', 'codex', 'opencode', 'antigravity', 'copilot', 'other'}
 STATUS = {'open', 'blocked', 'done'}
 VALIDATION = {'passed', 'failed', 'not_run', 'unknown'}
-KEY_RE = re.compile(r'(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|(?i:bearer)\s+[A-Za-z0-9._~-]{16,}|(?i:(?:api[_-]?key|access[_-]?token|secret|password))\s*[:=]\s*["\']?\S{8,})')
+KEY_RE = re.compile(r'(?:xox[abprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{30,}|[sr]k_(?:live|test)_[A-Za-z0-9]{10,}|glpat-[A-Za-z0-9_-]{10,}|npm_[A-Za-z0-9]{30,}|eyJ[A-Za-z0-9_-]{5,}\.eyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]+|[A-Za-z][A-Za-z0-9+.-]*://[^\s/:@]+:[^\s/@]{4,}@|AccountKey=[A-Za-z0-9+/=]{20,}|SG\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}|gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|(?i:bearer)\s+[A-Za-z0-9._~-]{16,}|(?i:(?:api[_-]?key|access[_-]?token|secret|password))\s*[:=]\s*["\']?\S{8,})')
 FIELDS = {'mission', 'acceptance_criteria', 'completed', 'in_progress', 'blocked', 'changed_files', 'decisions', 'failed_attempts', 'validation', 'next_action', 'agent', 'worktree', 'branch', 'head', 'failure_records'}
 
 FAILURE_KEYS = {'approach', 'why_failed', 'evidence', 'regression_test', 'resolved'}
