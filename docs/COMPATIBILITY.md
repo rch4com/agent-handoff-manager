@@ -2,8 +2,8 @@
 
 | 호스트/표면 (버전, Win11) | 프로젝트 스킬 발견 | 코어 실행 | write/list/resume | 상태 |
 |---|---|---|---|---|
-| Claude Code 2.1.319 | 검증 (`.claude/skills`) | 검증 | write+list 검증, resume 미검증 | 부분 검증 |
-| Codex CLI 0.165.0 | 검증 (`.agents/skills`) | 검증 (실제 python 경로 필요, R-003) | resume 검증 (Claude 작성 세션 읽기) | 부분 검증 |
+| Claude Code 2.1.319 | 검증 (`.claude/skills`) | 검증 | write, list, resume 검증 (Codex 작성 세션 resume 포함) | 부분 검증 |
+| Codex CLI 0.165.0 | 검증 (`.agents/skills`) | 검증 (실제 python 경로 필요, R-003) | write(`--depth rich`, failure_records), resume 검증 | 부분 검증 |
 | OpenCode 1.19.4 | 검증 (`opencode debug skill`) | 검증 (`-m opencode/big-pickle` 지정 시; 기본 모델은 provider 설정 오류) | resume 검증, write 미검증 | 부분 검증 |
 | Antigravity agy 1.5.0 | 검증 (`.agents/skills`) | 검증 | resume 검증 (미존재 주장 파일 지적) | 부분 검증 |
 | Copilot VS Code Agent 1.145.1 | 미검증 | 미검증 | 미검증 | 미검증 |

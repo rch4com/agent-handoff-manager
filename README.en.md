@@ -33,8 +33,8 @@ python <skill-dir>/scripts/handoff.py --repo . import-legacy --dry-run
 
 | Host | Discovered | Core ran | Verified behavior |
 |---|---|---|---|
-| Claude Code 2.1.319 | yes | yes | write, list |
-| Codex CLI 0.165.0 | yes | yes | resume (needs a real python path) |
+| Claude Code 2.1.319 | yes | yes | write, list, resume |
+| Codex CLI 0.165.0 | yes | yes | write, resume (needs a real python path) |
 | OpenCode 1.19.4 | yes | yes | resume (with explicit `-m`) |
 | Antigravity agy 1.5.0 | yes | yes | resume |
 | Copilot CLI 1.0.105 | yes | yes | resume |
