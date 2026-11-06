@@ -30,18 +30,23 @@ Antigravity─┤
 
 기존 ③ `.handoffs/<timestamp>-slug.md`는 레거시로 인정하고, 안전한 import 후 원본은 그대로 남길 것. 기존 ④ 파일과 그 관리 스크립트의 변경 가능성을 고려하여 어댑터 경계를 둔다.
 
-## Planned CLI contract (NOT YET IMPLEMENTED)
+## CLI contract (implemented, 2026-11-07; original plan differences listed below)
 
 ```text
-handoff init [--repo PATH] [--layout multi] [--dry-run]
-handoff write --mission TEXT [--depth auto|minimal|rich|exhaustive]
-handoff list [--project PATH] [--status STATUS] [--agent NAME] [--archived]
-handoff resume <id|latest> [--repo PATH] [--verify-only]
-handoff archive <id> [--dry-run] [--confirm]
-handoff restore <id> [--dry-run] [--confirm]
-handoff doctor [--repo PATH]
-handoff upstream status
+python <skill-dir>/scripts/handoff.py [--repo PATH] <command>
+  init
+  write --payload FILE [--depth auto|minimal|rich|exhaustive] [--id ID --expected-revision N]
+  list [--status open|archived|all] [--archived] [--agent NAME] [--since D] [--until D] [--all-worktrees]
+  resume <id|latest>
+  archive <id> (--dry-run | --confirm)
+  restore <id> (--dry-run | --confirm)
+  doctor
+  import-legacy [--dry-run]
+  inject-rules [--target agents|claude|copilot] [--create] [--remove] (--dry-run | --apply)
+  upstream status
 ```
+
+Differences from the first plan: there is no `handoff` shortcut binary (ADR-0002: the script lives inside the skill folder); `write` takes a payload file, not `--mission` text (ADR-0004); `init --layout/--dry-run` and `resume --verify-only` do not exist (`resume` is always read-only); `list --project` does not exist (`project_id` is a path hash, not a cross-clone identity).
 
 `resume`은 상태 복구와 검증 보고를 뜻함. 작업 재개를 위한 소스 변경/테스트 실행은 에이전트의 별도 권한과 지시에 따름. `write`는 모델 내의 대화 정보까지 파이썬 스크립트가 알 수 없으므로, **호스트 어댑터가 모델이 생성한 검증 가능한 세션 payload를 코어에 전달**하는 구조가 필요하다. CLI만 실행하여 과거 대화를 자동 추출한다고 주장하면 안 됨.
 
@@ -101,7 +106,3 @@ Decided (see `docs/`): ADR-0001 durable state vs sessions; ADR-0002 self-contain
 - **Copilot Cloud Agent:** ensure target repo contains the skill and executable dependency; the developer's personal machine/global install has no guarantee of being available in a cloud checkout.
 - **No run-on-install:** skill installers and marketplace installation should not implicitly execute imported upstream Python code.
 - Marketplace paths/manifests must remain independent from the shared Python core and follow their platform schema.
-
-## Pilot implementation addendum (2026-11-06)
-
-The earlier sections labelled "NOT YET IMPLEMENTED" describe the original roadmap. `skills/agent-handoff-manager/scripts/handoff.py` now implements a **subset** as a local pilot: `init`, `write --payload`, `list`, `resume`, `archive --confirm`, `restore --confirm`, `doctor`. It does not implement `--depth`, `--dry-run`, `--status` filters or `upstream status` in that planned syntax. See `docs/PILOT_QUICKSTART.md`, `docs/SCHEMA_SPEC.md`, `docs/RECOVERY_PROTOCOL.md` for the **current** runnable contract. This pilot does not change authoritative long-lived project state or execute payload commands.
