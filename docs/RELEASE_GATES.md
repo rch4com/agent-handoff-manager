@@ -17,7 +17,7 @@ State as of 2026-11-07. `[x]` = evidence exists in `PROJECT_TRACKER.md`; `[ ]` =
 
 ## Stable v1.0 blockers
 
-- [ ] write + resume verified on **every** host (missing: write on OpenCode/Antigravity/Copilot CLI; `scripts/host_smoke.ps1` is ready for the user to run) and host runs on Linux/macOS (core tests already pass on Linux)
+- [ ] write + resume verified on **every** host (core-invocation write verified on Claude Code, Codex, OpenCode, Copilot CLI; agent-composed payload verified only on Claude Code and Codex; Antigravity write untested: `scripts/host_smoke.ps1` is ready for the user to run) and host runs on Linux/macOS (core tests already pass on Linux)
 - [ ] Copilot VS Code Agent Mode and Copilot Cloud Agent end-to-end (not tested)
 - [ ] Real process-kill and power-loss durability, network filesystems (simulated interruptions are tested: `docs/RECOVERY_PROTOCOL.md`)
 - [ ] Distributed coordination across worktrees/machines beyond OS locks and revision checks (explicitly out of scope for v1.0 per INTENTS.md; must be documented, not implied)

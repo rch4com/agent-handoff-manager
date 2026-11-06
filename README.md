@@ -50,7 +50,7 @@ python <skill-dir>/scripts/handoff.py --repo . import-legacy --dry-run
 |---|---|---|---|
 | Claude Code 2.1.319 | O | O | write, list, resume |
 | Codex CLI 0.165.0 | O | O | write, resume (실제 python 경로 필요) |
-| OpenCode 1.19.4 | O | O | resume (`-m` 모델 지정 시) |
+| OpenCode 1.19.4 | O | O | resume, write(core 호출만; payload는 외부 준비) (`-m` 모델 지정 시) |
 | Antigravity agy 1.5.0 | O | O | resume |
 | Copilot CLI 1.0.105 | O | O | resume, write(core 호출만; payload는 외부 준비) |
 | Copilot VS Code Agent / Cloud Agent | 미검증 | 미검증 | — |
