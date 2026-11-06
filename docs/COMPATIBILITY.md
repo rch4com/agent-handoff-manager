@@ -33,3 +33,14 @@
 ## 수용 기준
 
 각 표면에서 Skill 발견, `handoff init`, `write`, `list`, `resume`, `archive`, `restore`, update/uninstall 시험 결과를 버전·OS·로그·커밋 SHA와 함께 기록해야 `SUPPORTED`로 변경할 수 있음.
+
+## 재현 스크립트
+
+`scripts/host_smoke.ps1`는 공개 저장소의 스킬을 고정 SHA로 임시 저장소에 설치하고, 호스트 에이전트에게 `write`를 시킨 뒤 **코어(`list`, `doctor`)와 git으로 결과를 직접 판정**합니다(에이전트의 자기 보고는 증거로 쓰지 않음). 실제 호스트 CLI를 실행하므로 모델 크레딧이 소모되며 직접 실행해야 합니다.
+
+```powershell
+pwsh -File scripts/host_smoke.ps1 -Target copilot,opencode,agy -Python C:/Users/me/AppData/Local/Python/pythoncore-3.14-64/python.exe
+pwsh -File scripts/host_smoke.ps1 -DryRun    # 설치 + 코어 확인만 (에이전트 미실행)
+```
+
+`-DryRun`은 2026-11-07 Windows 11에서 실행해 설치와 코어 실행을 확인했습니다. 에이전트를 실제로 띄우는 부분은 이 문서의 "검증" 표에 반영된 결과만 사실로 취급하세요.
