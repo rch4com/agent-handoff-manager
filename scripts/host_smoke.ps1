@@ -4,7 +4,7 @@
   agent to WRITE a handoff, then verify the record with the core itself (not with the agent's report).
 .DESCRIPTION
   Runs real host CLIs, which spend model credits and execute the skill with the host's own permissions.
-  Run it yourself; it never touches your real repositories (temp dirs only).
+  Run it yourself; it never touches your real repositories (temp dirs only). copilot/opencode run in a narrow-permission mode by default (the agent may only execute `python ...`; the payload is prepared by this script). Use -ComposePayload to let the agent compose the payload (needs broader permissions).
 .EXAMPLE
   pwsh -File scripts/host_smoke.ps1 -Target copilot,opencode,agy -Python C:/Users/me/AppData/Local/Python/pythoncore-3.14-64/python.exe
   pwsh -File scripts/host_smoke.ps1 -DryRun     # install + core check only, no agent is started
@@ -14,6 +14,7 @@ param(
   [string]$Python = 'python',
   [string]$Sha = '',
   [string]$OpenCodeModel = 'opencode/big-pickle',
+  [switch]$ComposePayload,  # agent writes the payload itself (needs broad write/shell permission); default: script prepares it, agent only runs the core
   [switch]$DryRun
 )
 $ErrorActionPreference = 'Stop'
@@ -38,14 +39,30 @@ foreach ($h in $targets) {
     $core = Get-ChildItem -Recurse -Filter handoff.py -Path . | Where-Object { $_.FullName -notmatch '\\\.git\\' } | Select-Object -First 1
     $ver = & $Python $core.FullName --version
     if ($DryRun) { $results += "[dry-run] $h install OK, core: $ver ($dir)"; continue }
-    $prompt = "Use the agent-handoff-manager skill to write a handoff with --depth rich. Record only these facts: mission 'Add logging to app.py'; agent $($writerName[$h]); in_progress ['edit app.py']; changed_files [{path app.py, owner $($writerName[$h])}]; validation [{command 'python app.py', result not_run, evidence ''}]; next_action 'Add a logging call to app.py and run python app.py'; failed_attempts ['tried print(): no timestamps']. Python is $Python . Put the payload file in your temp dir and delete it afterwards. Report the printed id and revision. Do not edit repository files."
+    $facts = "mission 'Add logging to app.py'; agent $($writerName[$h]); in_progress ['edit app.py']; changed_files [{path app.py, owner $($writerName[$h])}]; validation [{command 'python app.py', result not_run, evidence ''}]; next_action 'Add a logging call to app.py and run python app.py'; failed_attempts ['tried print(): no timestamps']"
+    $narrow = ($h -in @('copilot', 'opencode')) -and -not $ComposePayload
+    if ($narrow) {
+      # Narrow mode: payload prepared here; the agent may only run `python ...` (no file edits, no other commands).
+      $payloadObj = [ordered]@{ agent = $writerName[$h]; mission = 'Add logging to app.py'; in_progress = @('edit app.py')
+        changed_files = @(@{ path = 'app.py'; owner = $writerName[$h] }); validation = @(@{ command = 'python app.py'; result = 'not_run'; evidence = '' })
+        next_action = 'Add a logging call to app.py and run python app.py'; failed_attempts = @('tried print(): no timestamps') }
+      $payloadObj | ConvertTo-Json -Depth 5 | Set-Content payload.tmp.json -Encoding utf8
+      $rel = (Resolve-Path -Relative $core.FullName).Replace([string][char]92, '/') -replace '^\./', ''
+      $prompt = "Use the agent-handoff-manager skill. The payload file payload.tmp.json already exists in the current directory (prepared by the user; do not edit or delete it). Run exactly: python $rel --repo . write --payload payload.tmp.json --depth rich (plain python on PATH) and report the printed id and revision."
+    } else {
+      $prompt = "Use the agent-handoff-manager skill to write a handoff with --depth rich. Record only these facts: $facts. Python is $Python . Put the payload file in your temp dir and delete it afterwards. Report the printed id and revision. Do not edit repository files."
+    }
     switch ($h) {
-      'copilot'  { copilot -p $prompt --allow-tool='shell' }
-      'opencode' { opencode run -m $OpenCodeModel $prompt }
+      'copilot'  { if ($narrow) { copilot -p $prompt '--allow-tool=shell(python)' --deny-tool='shell(rm)' --deny-tool='shell(git push)' } else { copilot -p $prompt --allow-tool='shell' } }
+      'opencode' {
+        if ($narrow) { $env:OPENCODE_PERMISSION = '{"bash":{"python *":"allow","*":"deny"},"edit":"deny","webfetch":"deny"}' }
+        try { opencode run -m $OpenCodeModel $prompt } finally { Remove-Item Env:OPENCODE_PERMISSION -ErrorAction SilentlyContinue }
+      }
       'agy'      { agy -p $prompt }
       'codex'    { codex exec --skip-git-repo-check -s workspace-write $prompt }
       'claude'   { claude -p $prompt --allowedTools 'Bash(python:*)' 'Read' 'Write' 'Skill' }
     }
+    if (Test-Path payload.tmp.json) { Remove-Item payload.tmp.json }
     # Judge by the core, not by what the agent said.
     $list = & $Python $core.FullName --repo . list --status all | ConvertFrom-Json
     $rec = $list | Where-Object { $_.payload.mission -eq 'Add logging to app.py' } | Select-Object -First 1

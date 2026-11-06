@@ -40,6 +40,7 @@
 
 ```powershell
 pwsh -File scripts/host_smoke.ps1 -Target copilot,opencode,agy -Python C:/Users/me/AppData/Local/Python/pythoncore-3.14-64/python.exe
+pwsh -File scripts/host_smoke.ps1 -Target copilot -ComposePayload   # agent writes the payload itself (broader permission)
 pwsh -File scripts/host_smoke.ps1 -DryRun    # 설치 + 코어 확인만 (에이전트 미실행)
 ```
 
@@ -47,3 +48,5 @@ pwsh -File scripts/host_smoke.ps1 -DryRun    # 설치 + 코어 확인만 (에이
 
 Copilot CLI 헤드리스 팁: `--allow-tool='shell(python)'`처럼 **실행 파일 이름만** 지정하고 프롬프트에서 `python ...`을 쓰도록 하세요. 전체 경로 패턴(`shell(C:\...\python.exe)`)은 Windows에서 `& 'C:\...'` 형태로 실행되어 매칭되지 않았습니다.
 OpenCode 헤드리스 팁: 환경변수 `OPENCODE_PERMISSION='{"bash":{"python *":"allow","*":"deny"},"edit":"deny"}'`로 python 실행만 허용하고 `opencode run -m <모델> ...`을 실행하세요. Antigravity(agy 1.5.0)는 명령 단위 허용 목록 플래그를 찾지 못해(`--dangerously-skip-permissions`와 `--mode`만 확인) 좁은 권한 실행을 만들지 못했고, 제한 없는 에이전트 실행은 권한 분류기가 거부했습니다.
+
+`host_smoke.ps1` 기본 동작: copilot/opencode는 **좁은 권한 모드**(에이전트는 `python ...`만 실행 가능, payload는 스크립트가 준비), claude/codex/agy는 에이전트가 payload를 직접 작성. `-ComposePayload`를 주면 copilot/opencode도 직접 작성(넓은 권한 필요). 2026-11-07 Windows 11에서 `-Target claude,codex`와 `-Target opencode,copilot` 모두 `PASS`(코어 판정)였습니다.
