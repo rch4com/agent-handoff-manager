@@ -92,9 +92,7 @@ handoff upstream status
 
 ## Future decisions
 
-- ADR-0002: core package path, plugin naming, packaging mechanism.
-- ADR-0003: Windows-compatible locking for shared worktree.
-- ADR-0004: `write` input interface between LLM-generated text and deterministic CLI.
+Decided (see `docs/`): ADR-0001 durable state vs sessions; ADR-0002 self-contained skill package (core inside the skill folder); ADR-0003 upstreams are design references, nothing vendored; ADR-0004 `write` takes an explicit JSON payload file; ADR-0005 local locking + revisions, no distributed coordination. (The numbering above this section's earlier plan was superseded.)
 
 ## Copilot and public packaging extension
 

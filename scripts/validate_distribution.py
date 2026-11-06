@@ -12,7 +12,7 @@ REQUIRED = [
     'docs/INSTALLATION_AND_SHARING.md', 'docs/COPILOT_SETUP.md',
     'docs/MARKETPLACES.md', 'docs/COMPATIBILITY.md',
     '.github/copilot-instructions.md',
-    'scripts/check_upstreams.py', 'skills/agent-handoff-manager/scripts/handoff.py', 'THIRD_PARTY_NOTICES.md', 'docs/ADR-0002.md', 'docs/ADR-0003.md', 'upstreams.lock.json',
+    'scripts/check_upstreams.py', 'skills/agent-handoff-manager/scripts/handoff.py', 'THIRD_PARTY_NOTICES.md', 'docs/ADR-0002.md', 'docs/ADR-0003.md', 'docs/ADR-0004.md', 'docs/ADR-0005.md', 'upstreams.lock.json',
     'docs/SCHEMA_SPEC.md', 'docs/ADAPTER_CONTRACT.md', 'docs/RECOVERY_PROTOCOL.md',
     'docs/RELEASE_GATES.md', 'docs/PILOT_QUICKSTART.md', 'examples/session_payload.json',
 ]
