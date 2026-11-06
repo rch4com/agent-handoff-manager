@@ -18,6 +18,19 @@ npx skills add rch4com/agent-handoff-manager --skill agent-handoff-manager -a cl
 
 > 같은 스킬을 `.agents/skills`와 `.claude/skills`에 모두 설치하면 Copilot이 둘 다 읽을 수 있으니 한 곳만 쓰세요.
 
+### 선택: 플러그인 경로 (스킬 설치와 동시에 쓰지 마세요)
+
+```bash
+# Claude Code (검증: 2.1.319)
+claude plugin marketplace add rch4com/agent-handoff-manager
+claude plugin install agent-handoff-manager@agent-handoff-manager-marketplace
+# GitHub Copilot CLI (검증: 1.0.105, 설치까지)
+copilot plugin marketplace add rch4com/agent-handoff-manager
+copilot plugin install agent-handoff-manager@agent-handoff-manager-copilot
+```
+
+두 marketplace 매니페스트는 형식이 다르며(`.claude-plugin/` vs `plugin.json` + `.github/plugin/`) 같은 스킬 폴더를 가리킵니다. 공식 marketplace에는 등록하지 않았습니다. 자세한 내용은 [docs/MARKETPLACES.md](docs/MARKETPLACES.md).
+
 ## 사용
 
 [docs/USER_GUIDE.md](docs/USER_GUIDE.md)의 명령은 실제 CLI와 일치합니다. 요약:

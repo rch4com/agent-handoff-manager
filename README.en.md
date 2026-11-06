@@ -16,6 +16,19 @@ npx skills add rch4com/agent-handoff-manager --skill agent-handoff-manager -a cl
 
 `--agent` values `claude-code`, `codex`, `opencode`, `antigravity` and `github-copilot` were each installed and checked. The core (`scripts/handoff.py`) is shipped inside the skill folder (`docs/ADR-0002.md`); only Python 3.10+ is required. Nothing is executed at install time. Do not install the same skill into both `.agents/skills` and `.claude/skills` for Copilot.
 
+### Optional: plugin route (do not combine with a skill install)
+
+```bash
+# Claude Code (tested: 2.1.319)
+claude plugin marketplace add rch4com/agent-handoff-manager
+claude plugin install agent-handoff-manager@agent-handoff-manager-marketplace
+# GitHub Copilot CLI (tested: 1.0.105, install only)
+copilot plugin marketplace add rch4com/agent-handoff-manager
+copilot plugin install agent-handoff-manager@agent-handoff-manager-copilot
+```
+
+The two marketplace manifests use different formats (`.claude-plugin/` vs `plugin.json` + `.github/plugin/`) and point at the same skill folder. Nothing was submitted to an official marketplace. See `docs/MARKETPLACES.md`.
+
 ## Use
 
 The commands in `docs/USER_GUIDE.md` match the real CLI:
