@@ -170,8 +170,41 @@ def project_identity(root):
     return hashlib.sha256(str(root).encode()).hexdigest()[:24]
 
 
-def write(root, payload, identifier=None, expected_revision=None):
+DEPTHS = ('minimal', 'rich', 'exhaustive')
+ALL_LISTS = ('acceptance_criteria', 'completed', 'in_progress', 'blocked', 'decisions', 'failed_attempts', 'changed_files', 'validation')
+
+
+def depth_gaps(raw, level):
+    """What the payload still lacks for `level`. Completeness policy only; content stays an unverified claim."""
+    gaps = []
+    if level in ('rich', 'exhaustive'):
+        if not raw.get('validation'):
+            gaps.append('validation (non-empty, use result not_run if nothing was run)')
+        if not any(raw.get(k) for k in ('completed', 'in_progress', 'blocked')):
+            gaps.append('at least one of completed/in_progress/blocked')
+        if 'failed_attempts' not in raw:
+            gaps.append('failed_attempts (explicit, [] if none)')
+    if level == 'exhaustive':
+        if not raw.get('acceptance_criteria'):
+            gaps.append('acceptance_criteria (non-empty)')
+        gaps += [f'{k} (explicit key)' for k in ALL_LISTS if k not in raw and k not in ('acceptance_criteria', 'validation', 'failed_attempts')]
+    return gaps
+
+
+def resolve_depth(raw, depth):
+    if depth not in ('auto',) + DEPTHS:
+        raise HandoffError('depth must be one of: auto, ' + ', '.join(DEPTHS))
+    if depth == 'auto':
+        return [d for d in DEPTHS if not depth_gaps(raw, d)][-1]
+    gaps = depth_gaps(raw, depth)
+    if gaps:
+        raise HandoffError(f'{depth} depth requires: ' + '; '.join(gaps))
+    return depth
+
+
+def write(root, payload, identifier=None, expected_revision=None, depth='auto'):
     raw = sanitize_payload(payload)
+    depth = resolve_depth(raw, depth)
     init(root)
     with StoreLock(root):
         if identifier:
@@ -193,7 +226,7 @@ def write(root, payload, identifier=None, expected_revision=None):
                   'project_id': identity, 'revision': revision, 'status': 'open',
                   'created_at': created, 'updated_at': now(),
                   'git_observation': {'branch': git(root, 'branch', '--show-current'), 'head': git(root, 'rev-parse', 'HEAD'), 'dirty': bool(git(root, 'status', '--porcelain')) if git(root, 'status', '--porcelain') is not None else None},
-                  'payload': raw, 'claims_are_unverified': True}
+                  'depth': depth, 'payload': raw, 'claims_are_unverified': True}
         atomic_json(path / 'session.json', record)
         return record
 
@@ -475,7 +508,7 @@ def main(argv=None):
     parser.add_argument('--version', action='version', version=f'agent-handoff-manager core {VERSION}')
     commands = parser.add_subparsers(dest='cmd', required=True)
     commands.add_parser('init')
-    wr = commands.add_parser('write'); wr.add_argument('--payload', required=True, help='Local JSON payload file; never executes embedded commands'); wr.add_argument('--id'); wr.add_argument('--expected-revision', type=int)
+    wr = commands.add_parser('write'); wr.add_argument('--payload', required=True, help='Local JSON payload file; never executes embedded commands'); wr.add_argument('--id'); wr.add_argument('--expected-revision', type=int); wr.add_argument('--depth', choices=('auto',) + DEPTHS, default='auto', help='Completeness policy for the payload (auto = highest satisfied)')
     ls = commands.add_parser('list')
     ls.add_argument('--archived', action='store_true', help='Alias for --status archived')
     ls.add_argument('--status', choices=LIST_STATUS)
@@ -502,7 +535,7 @@ def main(argv=None):
             source = Path(args.payload)
             if source.is_symlink() or not source.is_file() or source.stat().st_size > 256_000:
                 raise HandoffError('Payload must be a regular non-symlink file <=256 KB')
-            result = write(root, json.loads(source.read_text(encoding='utf-8')), args.id, args.expected_revision)
+            result = write(root, json.loads(source.read_text(encoding='utf-8')), args.id, args.expected_revision, args.depth)
         elif args.cmd == 'list':
             if args.archived and args.status not in (None, 'archived'):
                 raise HandoffError('--archived conflicts with --status')

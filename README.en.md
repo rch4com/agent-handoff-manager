@@ -44,7 +44,7 @@ Evidence: `PROJECT_TRACKER.md` and `docs/COMPATIBILITY.md`. Compatibility will n
 
 ## Not implemented yet
 
-`--depth`, durable-state (④) change proposals, upstream impact-analysis PR automation, Claude/Copilot marketplace manifests, release tags/checksums, Linux verification. See `docs/RELEASE_GATES.md`.
+Durable-state (④) change proposals, upstream impact-analysis PR automation, Claude/Copilot marketplace manifests, release tags/checksums, Linux verification. See `docs/RELEASE_GATES.md`.
 
 ## Develop
 

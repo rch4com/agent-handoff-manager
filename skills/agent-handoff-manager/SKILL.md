@@ -22,7 +22,7 @@ Check runtime first: `python <skill-dir>/scripts/handoff.py --version` (use `pyt
 
 1. Create a private temp JSON file (outside the repo or git-ignored) with these fields. Required: `mission`, `next_action`. Optional: `agent` (`claude-code|codex|opencode|antigravity|copilot|other`), `acceptance_criteria`, `completed`, `in_progress`, `blocked`, `decisions`, `failed_attempts` (string arrays), `changed_files` (`[{"path":"rel/posix/path","owner":"agent"}]`), `validation` (`[{"command":"...","result":"passed|failed|not_run|unknown","evidence":"..."}]`). Unknown fields are rejected.
 2. Always record `failed_attempts` (what was tried, why it failed) so the next agent does not repeat it.
-3. Run: `python <skill-dir>/scripts/handoff.py --repo <repo-root> write --payload <file>`
+3. Run: `python <skill-dir>/scripts/handoff.py --repo <repo-root> write --payload <file> [--depth auto|minimal|rich|exhaustive]` (default `auto`; an explicit depth is rejected, and nothing saved, if the payload lacks what that depth needs: rich = validation + progress + explicit `failed_attempts`; exhaustive = all lists explicit and `acceptance_criteria`)
 4. Success = exit code 0 and JSON with `id` and `revision`. Exit code 2 / `HANDOFF_ERROR` = not saved; report it. Delete the temp file afterwards.
 5. Update an existing session: add `--id <id> --expected-revision <n>`. On a revision conflict, read the latest record; do not overwrite.
 

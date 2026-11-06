@@ -9,7 +9,7 @@
 | P0-03 | 두 MIT 원본 고지 | DONE | LICENSE blobs bbf0adc0…/a0a2e818… fetched verbatim -> `THIRD_PARTY_NOTICES.md`; nothing vendored; `check_upstreams.py` live: both up_to_date | 미지정 | Re-run notices review if code is ever vendored |
 | P1-01 | 세션 스키마/스토리지 | NEEDS_REVIEW | pilot core `skills/agent-handoff-manager/scripts/handoff.py`; 19 tests OK (1 skipped: symlink needs privilege) | 미지정 | Crash-injection + multi-process tests; real `project_id` |
 | P1-02 | 레거시 이관 | NEEDS_REVIEW | `import-legacy [--dry-run]`: 7 tests in tests/test_legacy_import.py (lossless + originals byte-identical, idempotent, dry-run, secret skip, symlink/non-handoff skip, ④/AGENTS/CLAUDE/copilot files untouched over 3x init+import, CLI); red-before-green; manual run in non-ASCII path. Fixture is hand-written from upstream template, NOT output of the real ③ plugin | 미지정 | Run against real ③-generated docs; legacy status/INDEX not imported (by design) |
-| P2-01 | write | NEEDS_REVIEW | write verified via Claude Code 2.1.319 (haiku) on installed copy; unit tests | 미지정 | `--depth`, ④ change candidates (P3) |
+| P2-01 | write | NEEDS_REVIEW | write: payload facts/claims split (`claims_are_unverified`), secret rejection, explicit next_action, `--depth auto/minimal/rich/exhaustive` (7 tests, red-before-green), session meta + git observation; Claude Code E2E write | 미지정 | ④ change candidates (P3); stronger secret scanning; non-Claude host write E2E |
 | P2-02 | resume | NEEDS_REVIEW | resume verified by Codex 0.165.0 reading a Claude-written session (read-only, git diff reported) | 미지정 | Add checks: expected files / tests |
 | P2-03 | list | NEEDS_REVIEW | tests/test_list_filters.py: status/agent/date filters (+invalid input rejected, CLI), `--all-worktrees` over a real `git worktree add` with non-ASCII path (read-only, `worktree_root` tagged); Claude Code list E2E earlier | 미지정 | Project filter n/a (project_id is a path hash); Linux run; crash/perf on many sessions |
 | P2-04 | archive/restore | NEEDS_REVIEW | archive/restore `--confirm` + `--dry-run` (mutually exclusive, one required): DryRunTests x3 (plan printed, byte-identical tree, invalid cases fail like real run) + clean-copy lifecycle test | 미지정 | Crash-injection between metadata rewrite and rename; Linux |
@@ -47,6 +47,7 @@
 |---|---|---|---|---|---|
 | 2026-11-06 | P0-03 | Win11, py3.14.6 | `python scripts/check_upstreams.py` | both up_to_date | — |
 | 2026-11-06 | P1/P2 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 19 tests OK, 1 skipped | 73c1586 |
+| 2026-11-07 | P2-01 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 45 tests OK, 1 skipped | see commit |
 | 2026-11-07 | P2-04 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 38 tests OK, 1 skipped | see commit |
 | 2026-11-07 | P2-03/DOC-02 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 35 tests OK, 1 skipped; docs-sync test fails when a doc flag is misspelled (mutation checked) | see commit |
 | 2026-11-07 | P1-02 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 26 tests OK, 1 skipped (symlink privilege) | see commit below |

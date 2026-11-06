@@ -13,7 +13,7 @@ Python 3.10+. Windows에서 `python`/`py`가 Microsoft Store alias면 샌드박�
 ```bash
 python $H --version                     # agent-handoff-manager core 0.2.0-pilot
 python $H --repo . init                 # .handoffs/sessions, .handoffs/archive 생성(멱등)
-python $H --repo . write --payload payload.json
+python $H --repo . write --payload payload.json [--depth auto|minimal|rich|exhaustive]
 python $H --repo . list                 # 기본: open 세션
 python $H --repo . resume latest        # 읽기 전용
 python $H --repo . archive SESSION_ID --dry-run     # 이동 계획만 출력, 변경 없음
@@ -27,6 +27,18 @@ python $H --repo . import-legacy --dry-run
 - 모든 정상 출력은 JSON, 오류는 stderr의 `HANDOFF_ERROR: ...`(종료 코드 2). `doctor`는 문제가 있으면 종료 코드 1.
 - `archive`/`restore`는 `--confirm`(적용) 또는 `--dry-run`(계획만 출력) 중 하나가 필수이며 둘은 함께 쓸 수 없습니다. 둘 다 없으면 `HANDOFF_ERROR: Explicit --confirm required (or --dry-run to preview)`로 아무 것도 바꾸지 않습니다.
 - `write`는 대화를 읽지 않습니다. 에이전트가 payload를 만들어 넘깁니다 ([SCHEMA_SPEC.md](SCHEMA_SPEC.md), 예: `examples/session_payload.json`). 기존 세션 갱신은 `--id ID --expected-revision N`.
+
+### write --depth
+
+`--depth`는 payload의 **완성도 정책**입니다(내용의 진위는 검증하지 않음). 기본값 `auto`는 만족하는 가장 높은 단계를 기록하고, 명시한 단계에 못 미치면 저장하지 않고 `HANDOFF_ERROR: <depth> depth requires: ...`로 거부합니다.
+
+| depth | 요구 |
+|---|---|
+| `minimal` | `mission`, `next_action` |
+| `rich` | + `validation` 비어 있지 않음, `completed/in_progress/blocked` 중 하나 이상, `failed_attempts` 키(없으면 `[]`) |
+| `exhaustive` | + `acceptance_criteria` 비어 있지 않음, 나머지 목록 키 모두 명시 |
+
+기록된 값은 세션 레코드의 `depth`입니다.
 
 ### list 필터
 
@@ -68,4 +80,4 @@ python $H --repo . list --all-worktrees         # 같은 저장소의 다른 git
 
 ## 아직 없는 것
 
-`--depth`, `upstream status`, 프로젝트 장기 상태(④) 변경 후보 제안(P3), 네이티브 slash command. GitHub Copilot의 VS Code Agent / Cloud Agent 표면은 미검증.
+`upstream status`, 프로젝트 장기 상태(④) 변경 후보 제안(P3), 네이티브 slash command. GitHub Copilot의 VS Code Agent / Cloud Agent 표면은 미검증.
