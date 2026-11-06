@@ -1,0 +1,37 @@
+name: Upstream version monitor
+on:
+  schedule:
+    - cron: '0 2 * * 1' # Monday 02:00 UTC; GitHub may delay schedules
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compare against pinned adopted SHAs
+        id: compare
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/check_upstreams.py --lock upstreams.lock.json --report upstream-report.md --github-output "$GITHUB_OUTPUT"
+      - name: Create or update one review issue (never auto-merge)
+        if: steps.compare.outputs.changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          title='[upstream] Review source updates (④ + ③)'
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --json number,title --jq '.[] | select(.title == "[upstream] Review source updates (④ + ③)") | .number' | head -n 1)
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --repo "$GITHUB_REPOSITORY" --body-file upstream-report.md
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file upstream-report.md
+          fi

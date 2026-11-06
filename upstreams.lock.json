@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "policy": "review-before-adopt",
+  "sources": [
+    {
+      "id": "agent-handoff",
+      "repo": "WeirdSky924/agent-handoff-skill",
+      "ref": "main",
+      "adopted_sha": null,
+      "purpose": "Durable repository memory and compaction"
+    },
+    {
+      "id": "claude-handoff",
+      "repo": "aploe/claude-handoff-skill",
+      "ref": "main",
+      "adopted_sha": null,
+      "purpose": "Session write, resume, list, archive"
+    }
+  ]
+}

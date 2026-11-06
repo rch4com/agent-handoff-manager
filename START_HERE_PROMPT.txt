@@ -1,0 +1,31 @@
+이 저장소는 ④ WeirdSky924/agent-handoff-skill과 ③ aploe/claude-handoff-skill을
+결합하여 공개 배포 가능한 Unified Handoff Manager를 만드는 프로젝트입니다.
+
+반드시 WORK_ORDER.md, AGENTS.md, INTENTS.md, INDENTS.md,
+ARCHITECTURE.md, PROJECT_TRACKER.md, docs/UPSTREAM_POLICY.md를 먼저 읽으세요.
+
+1. 현재 Git 작업트리/기존 코드를 점검하고 미구현 상태를 정확히 보고하세요.
+2. WORK_ORDER.md의 P0부터 순서대로 구현하세요.
+3. 사용자에게 제공될 명령 write/resume/list/archive와 프로젝트 장기 상태를
+   단일 출처로 유지하도록 설계하세요.
+4. 두 upstream의 HEAD 변화를 자동 감지하되 새 코드를 무검증 자동 병합하거나
+   사용자 설치본에 직접 반영하지 마세요. 영향분석 PR/테스트/승인 절차를 구현하세요.
+5. Claude Code, Codex CLI, OpenCode, Antigravity, GitHub Copilot(VS Code Agent/CLI/Cloud)의 호환성을 실제 테스트하세요.
+6. 이미 해결된 실패의 재발을 막도록 원인, 증거, 회귀 테스트를 남기세요.
+7. 각 단계 완료 시 PROJECT_TRACKER.md에 커밋, 실제 테스트 명령과 결과,
+   위험, 다음 1개 작업을 적으세요. 미검증은 완료로 표시하지 마세요.
+8. README/영문 README/사용자 가이드/설치 및 배포 문서를 실제 실행 결과와 동기화하세요.
+
+P0 조사와 베이스라인 확정이 끝난 후 P1~P5를 구현하세요.
+불분명한 사항은 확인할 수 있는 범위에서 직접 검증하고, 중요한 판단은 ADR로 남기세요.
+
+추가 요청 (공개 배포 및 Copilot):
+- 저장소 공개 이름은 agent-handoff-manager를 사용하되 실제 remote/owner는 생성 전에 확인.
+- docs/INSTALLATION_AND_SHARING.md, docs/COPILOT_SETUP.md, docs/MARKETPLACES.md를 읽고,
+  GitHub CLI gh skill과 npx skills 경로로 다른 사용자에게 배포 가능하도록 구현.
+- SKILL.md만 복사돼도 작동할 수 있도록 core를 skill package 안에 포함하거나,
+  실행 의존성 설치를 명시/검증하는 배포 설계 ADR부터 확정.
+- Copilot VS Code Agent/Copilot CLI/Copilot Cloud Agent 각각에서 실제 설치/실행/재개 검증.
+- Claude 및 Copilot marketplace는 선택 배포 채널. 두 manifest 포맷을 혼동하지 말 것.
+- 공개 GitHub 저장소 생성, 원격 푸시, 공식 marketplace 등록은 소유자 승인 필요.
+- 완성되지 않은 CLI / marketplace를 배포 완료로 표시하지 말 것.
