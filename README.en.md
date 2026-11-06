@@ -50,7 +50,7 @@ python <skill-dir>/scripts/handoff.py --repo . import-legacy --dry-run
 | Codex CLI 0.165.0 | yes | yes | write, resume (needs a real python path) |
 | OpenCode 1.19.4 | yes | yes | resume (with explicit `-m`) |
 | Antigravity agy 1.5.0 | yes | yes | resume |
-| Copilot CLI 1.0.105 | yes | yes | resume |
+| Copilot CLI 1.0.105 | yes | yes | resume, write (core invocation only; payload prepared externally) |
 | Copilot VS Code Agent / Cloud Agent | no | no | not tested |
 
 Evidence: `PROJECT_TRACKER.md` and `docs/COMPATIBILITY.md`. Compatibility will not be declared for v1.0 before end-to-end runs on all five hosts and the three Copilot surfaces.

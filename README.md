@@ -52,7 +52,7 @@ python <skill-dir>/scripts/handoff.py --repo . import-legacy --dry-run
 | Codex CLI 0.165.0 | O | O | write, resume (실제 python 경로 필요) |
 | OpenCode 1.19.4 | O | O | resume (`-m` 모델 지정 시) |
 | Antigravity agy 1.5.0 | O | O | resume |
-| Copilot CLI 1.0.105 | O | O | resume |
+| Copilot CLI 1.0.105 | O | O | resume, write(core 호출만; payload는 외부 준비) |
 | Copilot VS Code Agent / Cloud Agent | 미검증 | 미검증 | — |
 
 증거: [PROJECT_TRACKER.md](PROJECT_TRACKER.md) 검증 로그, [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md). 지원 선언(v1.0)은 5개 호스트 + Copilot 3개 표면 E2E 이후입니다.

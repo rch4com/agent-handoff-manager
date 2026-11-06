@@ -7,7 +7,7 @@
 | OpenCode 1.19.4 | 검증 (`opencode debug skill`) | 검증 (`-m opencode/big-pickle` 지정 시; 기본 모델은 provider 설정 오류) | resume 검증, write 미검증 | 부분 검증 |
 | Antigravity agy 1.5.0 | 검증 (`.agents/skills`) | 검증 | resume 검증 (미존재 주장 파일 지적) | 부분 검증 |
 | Copilot VS Code Agent 1.145.1 | 미검증 | 미검증 | 미검증 | 미검증 |
-| Copilot CLI 1.0.105 | 검증 | 검증 | resume 검증, write 미검증 | 부분 검증 |
+| Copilot CLI 1.0.105 | 검증 | 검증 | resume 검증, write는 core 호출만 검증(payload는 외부 준비, 에이전트가 직접 작성한 것은 아님) | 부분 검증 |
 | Copilot Cloud Agent | 미검증 | 미검증 | 미검증 | 미검증 (push 승인 필요) |
 
 증거: `PROJECT_TRACKER.md` 검증 로그. **Linux**: 코어 단위 테스트 83개를 Ubuntu 24.04(WSL2, Python 3.12.3)와 GitHub Actions ubuntu-latest(3.10/3.12)에서 통과(symlink 포함). **Linux에서 호스트 에이전트(Claude/Codex/OpenCode/Antigravity/Copilot) 실행은 전부 미검증**, macOS는 전 항목 미검증. 위 표의 "검증"은 로컬 경로에서 `npx skills --copy`로 설치한 사본 기준이며 `gh skill`·공개 원격 설치는 미검증.
@@ -44,3 +44,5 @@ pwsh -File scripts/host_smoke.ps1 -DryRun    # 설치 + 코어 확인만 (에이
 ```
 
 `-DryRun`은 2026-11-07 Windows 11에서 실행해 설치와 코어 실행을 확인했습니다. 에이전트를 실제로 띄우는 부분은 이 문서의 "검증" 표에 반영된 결과만 사실로 취급하세요.
+
+Copilot CLI 헤드리스 팁: `--allow-tool='shell(python)'`처럼 **실행 파일 이름만** 지정하고 프롬프트에서 `python ...`을 쓰도록 하세요. 전체 경로 패턴(`shell(C:\...\python.exe)`)은 Windows에서 `& 'C:\...'` 형태로 실행되어 매칭되지 않았습니다.
