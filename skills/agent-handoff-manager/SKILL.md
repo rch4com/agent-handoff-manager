@@ -1,5 +1,6 @@
 ---
 name: agent-handoff-manager
+license: MIT
 description: Save and resume verified work-in-progress handoffs between AI coding agents (Claude Code, Codex, OpenCode, Antigravity, GitHub Copilot). Use when the user asks to hand off, save session state, switch agents, resume a previous handoff, list or archive handoffs. EXPERIMENTAL pilot; needs Python 3.10+.
 ---
 
