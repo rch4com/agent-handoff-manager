@@ -46,6 +46,21 @@ class LegacyImportTests(unittest.TestCase):
         self.assertTrue(handoff.doctor(self.root)["ok"])
         self.assertIn("session", handoff.resume(self.root, rec["id"]))
 
+    def test_document_in_real_upstream_structure_is_imported(self):
+        # Fixture = verbatim bootstrap block (claude-handoff-skill @b6ad33e) + the exhaustive template skeleton, section by section.
+        real = FIXTURE.parent / "2026-10-22-0915-auth-umstellung.md"
+        shutil.copyfile(real, self.root / ".handoffs" / real.name)
+        result = handoff.import_legacy(self.root)
+        self.assertEqual(2, len(result["imported"]), result)
+        rec = next(r for r in handoff.list_records(self.root) if r["legacy_import"]["source_file"] == real.name)
+        p = rec["payload"]
+        self.assertEqual("claude-code", p["agent"])
+        self.assertEqual(2, len(p["completed"]))
+        self.assertEqual(1, len(p["blocked"]))
+        self.assertEqual(["src/auth/verifier.py", "src/handlers/auth.ts", "docs/한글 설계.md"], [c["path"] for c in p["changed_files"]])
+        self.assertIn("Do not add new npm packages", rec["legacy_import"]["original_text"])  # constraint preserved verbatim
+        self.assertIn("HANDOFF-DOC v1", rec["legacy_import"]["original_text"])
+
     def test_import_is_idempotent(self):
         handoff.import_legacy(self.root)
         again = handoff.import_legacy(self.root)

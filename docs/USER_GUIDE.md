@@ -22,6 +22,7 @@ python $H --repo . restore SESSION_ID --dry-run
 python $H --repo . restore SESSION_ID --confirm
 python $H --repo . doctor
 python $H --repo . import-legacy --dry-run
+python $H upstream status              # 오프라인: 이 버전이 기준으로 삼은 업스트림 SHA/라이선스 출력
 ```
 
 - 모든 정상 출력은 JSON, 오류는 stderr의 `HANDOFF_ERROR: ...`(종료 코드 2). `doctor`는 문제가 있으면 종료 코드 1.
@@ -106,4 +107,4 @@ python $H --repo . list --all-worktrees         # 같은 저장소의 다른 git
 
 ## 아직 없는 것
 
-`upstream status`, 프로젝트 장기 상태(④) 변경 후보 제안(P3), 네이티브 slash command. GitHub Copilot의 VS Code Agent / Cloud Agent 표면은 미검증.
+프로젝트 장기 상태(④) 변경 후보 제안(P3), 네이티브 slash command. GitHub Copilot의 VS Code Agent / Cloud Agent 표면은 미검증.

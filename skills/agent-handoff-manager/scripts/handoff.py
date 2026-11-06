@@ -28,6 +28,13 @@ REGRESSION = {'none', 'planned', 'added', 'not_applicable'}
 DURABLE_FILES = ('AGENT_HANDOFF.md', '.agent-handoff/snapshot.md', '.agent-handoff/risks.md', '.agent-handoff/validation.md')
 
 
+# Copy of the reviewed pins in upstreams.lock.json (tests/test_upstream_status.py fails if they drift).
+UPSTREAM_BASELINE = (
+    {'repo': 'WeirdSky924/agent-handoff-skill', 'adopted_sha': 'ef01fa9db0ea0aab19141954644a1049da4da795', 'license': 'MIT'},
+    {'repo': 'aploe/claude-handoff-skill', 'adopted_sha': 'b6ad33e52c8c72f95cbafb006b7c7347c34f3ec8', 'license': 'MIT'},
+)
+
+
 class HandoffError(Exception):
     pass
 
@@ -669,10 +676,18 @@ def main(argv=None):
         mode.add_argument('--confirm', action='store_true', help='Apply the move')
         mode.add_argument('--dry-run', action='store_true', help='Show the planned move; change nothing')
     commands.add_parser('doctor')
+    up = commands.add_parser('upstream')
+    up.add_argument('action', choices=('status',))
     il = commands.add_parser('import-legacy')
     il.add_argument('--dry-run', action='store_true', help='Report what would be imported; write nothing')
     args = parser.parse_args(argv)
     try:
+        if args.cmd == 'upstream':  # offline, repo-independent: reports the pinned baseline only
+            print(json.dumps({'core_version': VERSION, 'baseline': list(UPSTREAM_BASELINE), 'adoption': 'design-reference-only',
+                              'network_checked': False,
+                              'how_to_check_for_updates': 'maintainers: python scripts/check_upstreams.py (read-only GitHub API; never auto-adopts)'},
+                             ensure_ascii=False, indent=2))
+            return 0
         root = ensure_repo(args.repo)
         if args.cmd == 'init':
             init(root); result = {'initialized': str(home(root))}

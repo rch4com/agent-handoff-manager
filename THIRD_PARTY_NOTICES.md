@@ -7,6 +7,8 @@ Status as of 2026-11-06: **no upstream source file is copied or vendored into th
 | https://github.com/WeirdSky924/agent-handoff-skill | `ef01fa9db0ea0aab19141954644a1049da4da795` | `bbf0adc0f98e1716d354e30cf601873f3fc5b0b2` | design reference (durable state layout, compaction ideas) |
 | https://github.com/aploe/claude-handoff-skill | `b6ad33e52c8c72f95cbafb006b7c7347c34f3ec8` | `a0a2e818e69cd129bc3e49e7f9af9c1f6701e985` | design reference (write/resume/list/archive semantics) |
 
+One test fixture, `tests/fixtures/legacy/2026-10-22-0915-auth-umstellung.md`, embeds the bootstrap block of aploe/claude-handoff-skill verbatim (from reviewed SHA `b6ad33e5…`, MIT, Copyright (c) 2026 aploe) so the importer is tested against the real document structure. It is test data only and is not shipped in the skill package.
+
 Both license texts below were fetched verbatim from the reviewed SHA on 2026-11-06 (bodies are identical; only the copyright line differs).
 
 ## WeirdSky924/agent-handoff-skill

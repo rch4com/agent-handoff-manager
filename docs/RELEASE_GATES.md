@@ -24,7 +24,7 @@ State as of 2026-11-07. `[x]` = evidence exists in `PROJECT_TRACKER.md`; `[ ]` =
 - [ ] Release tag, checksums/signature policy, GitHub Release artifact, tag protection, `gh skill update` receiving a new tagged version
 - [ ] Clean-machine onboarding run by someone other than the author (new user -> install -> write/resume -> upgrade -> uninstall)
 - [ ] ④ durable-state parsing/approval workflow (P3 only reads and proposes), ④ compaction vs ③ archive on a real ④ project
-- [ ] Real ③-generated legacy documents imported (fixture is hand-written)
+- [ ] Documents produced by the real ③ plugin imported (fixtures follow its verbatim bootstrap/template structure but content is invented)
 - [ ] Threat model reviewed against prompt injection through handoff records (resume never executes them; needs adversarial test with real hosts)
 - [ ] Owner approval for any official marketplace submission
 

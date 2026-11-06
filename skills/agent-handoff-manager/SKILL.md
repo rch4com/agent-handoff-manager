@@ -38,6 +38,7 @@ Check runtime first: `python <skill-dir>/scripts/handoff.py --version` (use `pyt
 - `archive <id>` and `restore <id>` with `--dry-run` (prints the plan) or `--confirm` (applies; reversible move). Always dry-run first and ask the user before `--confirm`.
 - `doctor` — checks the store; exit 1 lists issues. Never delete `.handoffs/.write.lock` automatically.
 - `import-legacy [--dry-run]` — copies old `.handoffs/*.md` (claude-handoff-skill format) into sessions; originals untouched; run `--dry-run` first and report skipped files.
+- `upstream status` — offline; prints the upstream commits this version is based on (no network, no update check).
 - `init` — creates empty `.handoffs/sessions` and `archive` (idempotent).
 
 ## Status
