@@ -527,30 +527,53 @@ def import_legacy(root, dry_run=False):
 
 
 def doctor(root):
+    """Read-only health check. Never deletes or repairs anything."""
     issues = []
-    base = home(root)
-    if not base.exists():
-        return {'ok': False, 'issues': ['Store not initialized']}
+    info = {'core_version': VERSION, 'python': sys.version.split()[0], 'python_ok': sys.version_info >= (3, 10),
+            'git_available': shutil.which('git') is not None, 'platform': sys.platform,
+            'active_sessions': 0, 'archived_sessions': 0, 'legacy_unimported': 0}
+    if not info['python_ok']:
+        issues.append('Python 3.10+ required')
+    try:
+        base = home(root)
+    except HandoffError as exc:
+        return {'ok': False, 'issues': issues + [str(exc)], 'info': info}
+    if not base.exists() or not any((base / d).exists() for d in ('sessions', 'archive')):
+        if base.exists():
+            info['legacy_unimported'] = sum(1 for f in base.glob('*.md') if f.is_file() and not f.is_symlink())
+        return {'ok': False, 'issues': issues + ['Store not initialized (run init)'], 'info': info}
     if (base / '.write.lock').exists():
         issues.append('Outstanding writer lock; investigate before removing')
     for archived in (False, True):
-        directory = bucket(root, archived)
+        try:
+            directory = bucket(root, archived)
+        except HandoffError as exc:
+            issues.append(str(exc))
+            continue
         if not directory.exists():
             issues.append(f'Missing directory {directory.name}')
             continue
         for p in directory.iterdir():
             if p.name.startswith('.pending-') or p.is_symlink():
                 issues.append(f'Unexpected path: {p.name}')
-            elif p.is_dir():
+            elif not p.is_dir():
+                issues.append(f'Unexpected file in {directory.name}: {p.name}')
+            else:
+                info['archived_sessions' if archived else 'active_sessions'] += 1
                 try:
                     rec = read_record(p)
                     if (rec['status'] == 'archived') != archived:
                         issues.append(f'Status/location mismatch (possible interrupted transition): {p.name}')
                     if (bucket(root, not archived) / p.name).exists():
                         issues.append(f'Duplicate session id: {p.name}')
+                    for leftover in p.iterdir():
+                        if leftover.name != 'session.json':
+                            issues.append(f'Unexpected path in session {p.name}: {leftover.name}')
                 except HandoffError as exc:
                     issues.append(str(exc))
-    return {'ok': not issues, 'issues': issues}
+    info['legacy_unimported'] = sum(1 for f in base.glob('*.md') if f.is_file() and not f.is_symlink())
+    return {'ok': not issues, 'issues': issues, 'info': info}
+
 
 def main(argv=None):
     for stream in (sys.stdout, sys.stderr):  # Windows consoles default to cp949/cp1252; output is JSON with ensure_ascii=False

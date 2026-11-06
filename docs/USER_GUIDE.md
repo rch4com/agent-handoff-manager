@@ -66,6 +66,10 @@ python $H --repo . list --all-worktrees         # 같은 저장소의 다른 git
 
 관련 테스트 실행은 에이전트가 사용자 권한 아래 직접 해야 합니다. 시험에서 Antigravity와 OpenCode는 payload가 주장한 파일이 없음을 스스로 짚어냈고, 이제 코어도 `file_checks`/`warnings`로 같은 사실을 제공합니다.
 
+### doctor
+
+읽기 전용 점검입니다(아무 것도 삭제/수리하지 않음). 반환: `ok`, `issues`, `info`(`python`/`python_ok`, `git_available`, `platform`, `active_sessions`, `archived_sessions`, `legacy_unimported`). 감지: 미초기화, 남은 `.write.lock`, 누락된 디렉터리, 읽을 수 없거나 지원하지 않는 `schema_version`의 레코드(비정상 종료로 비어 있는 세션 폴더 포함), 상태/위치 불일치(중단된 archive 가능성), 중복 ID, 세션 안팎의 `.pending-*`·불필요한 파일, symlink. `ok: false`면 종료 코드 1.
+
 ### 이전 ③ 문서 가져오기
 
 `.handoffs/*.md`(claude-handoff-skill 형식)가 있으면 `import-legacy --dry-run`으로 먼저 확인한 뒤 실행합니다. 원본은 그대로 두며, 건너뛴 파일과 사유가 출력됩니다. 자세한 내용은 [MIGRATION.md](MIGRATION.md).

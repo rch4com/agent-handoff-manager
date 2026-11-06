@@ -13,7 +13,7 @@
 | P2-02 | resume | NEEDS_REVIEW | resume: read-only; branch/HEAD/dirty + HEAD ancestry (ahead N / diverged), expected-file existence (symlink/outside_root not followed), validation claims never executed, warnings (7 tests, red-before-green); cross-agent resume verified on Codex/Copilot CLI/Antigravity/OpenCode | 미지정 | Tests are listed not run (by rule); AGENT_HANDOFF.md/.agent-handoff read order is P3 |
 | P2-03 | list | NEEDS_REVIEW | tests/test_list_filters.py: status/agent/date filters (+invalid input rejected, CLI), `--all-worktrees` over a real `git worktree add` with non-ASCII path (read-only, `worktree_root` tagged); Claude Code list E2E earlier | 미지정 | Project filter n/a (project_id is a path hash); Linux run; crash/perf on many sessions |
 | P2-04 | archive/restore | NEEDS_REVIEW | archive/restore `--confirm` + `--dry-run` (mutually exclusive, one required): DryRunTests x3 (plan printed, byte-identical tree, invalid cases fail like real run) + clean-copy lifecycle test | 미지정 | Crash-injection between metadata rewrite and rename; Linux |
-| P2-05 | doctor | NEEDS_REVIEW | doctor: unit + clean-copy test | 미지정 | CLI/path compat checks |
+| P2-05 | doctor | NEEDS_REVIEW | doctor: runtime info (python>=3.10, git), uninitialized + legacy hint, leftover pending files, crash-emptied session dir, newer schema, stray files, symlinked store (7 tests, red-before-green) | 미지정 | Host-CLI compat probes; Windows/Linux CI run |
 | P3-01 | 공식 상태와 세션 통합 | TODO | 없음 | 미지정 | 구현 |
 | P4-01 | Claude 어댑터 | IN_PROGRESS | Claude Code 2.1.319 / Win11: skill discovered in `.claude/skills` (npx skills --copy), write+list E2E pass | 미지정 | resume on Claude; macOS/Linux |
 | P4-02 | Codex 어댑터 | IN_PROGRESS | Codex 0.165.0 / Win11: discovery in `.agents/skills`, cross-agent resume pass (needs real python path; R-003) | 미지정 | write via Codex; Linux |
@@ -48,6 +48,7 @@
 |---|---|---|---|---|---|
 | 2026-11-06 | P0-03 | Win11, py3.14.6 | `python scripts/check_upstreams.py` | both up_to_date | — |
 | 2026-11-06 | P1/P2 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 19 tests OK, 1 skipped | 73c1586 |
+| 2026-11-07 | P2-05/#3 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 61 tests OK, 3 skipped (symlink privilege); concurrency test (6 processes) stable 6/6 runs | see commit |
 | 2026-11-07 | P2-02 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 52 tests OK, 2 skipped (symlink privilege) | see commit |
 | 2026-11-07 | P2-01 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 45 tests OK, 1 skipped | see commit |
 | 2026-11-07 | P2-04 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 38 tests OK, 1 skipped | see commit |
