@@ -31,7 +31,7 @@ gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent cod
 
 `--agent` 값 `github-copilot`, `claude-code`, `codex`, `opencode`, `antigravity`를 각각 설치해 확인했습니다. 결과 위치: `claude-code` -> `.claude/skills/agent-handoff-manager/`, 나머지 -> `.agents/skills/agent-handoff-manager/`. `--pin`은 SHA로 확인했고 `SKILL.md` frontmatter에 `github-pinned`가 기록됩니다. gh가 `SKILL.md`에 `metadata`(출처, 트리 SHA)를 추가합니다.
 
-`gh skill update`와 제거는 아직 시험하지 않았습니다. `gh skill publish --dry-run`은 통과했습니다(태그 보호 규칙 없음 경고만).
+업데이트·제거(실측): `--pin`으로 설치한 스킬은 `gh skill update agent-handoff-manager`가 `pinned to <sha> (skipped)`로 건너뜁니다. `gh skill`에는 uninstall 명령이 없어 스킬 폴더(`.agents/skills/agent-handoff-manager/`)를 직접 지우는 것이 제거입니다. 제거·재설치(이전 커밋 -> 최신 커밋) 후에도 `.handoffs/` 데이터는 그대로이며 새 버전이 이전 버전이 쓴 세션을 읽고 `doctor`가 `ok: true`였습니다. 핀 없는 설치가 새 커밋을 받는 `update` 경로는 새 릴리스가 생길 때 시험합니다. `gh skill publish --dry-run`은 통과했습니다(태그 보호 규칙 없음 경고만).
 
 ## 3. 대안 설치 B — `npx skills` (검증: node 26.13)
 
@@ -71,7 +71,7 @@ Claude Code와 GitHub Copilot CLI 모두 설치까지 확인했습니다(`docs/M
 ## 7. 새 사용자 온보딩 시험 상태
 
 - 검증됨: 원격 preview -> install -> core 실행 -> (호스트에서) write/resume.
-- 미검증: upgrade, uninstall 및 롤백, Linux·macOS, Copilot VS Code Agent, Copilot Cloud Agent(대상 저장소에 스킬을 커밋해야 함).
+- 검증됨: pin 건너뜀, 제거(폴더 삭제) 후 재설치에서 데이터 보존. 미검증: 핀 없는 update로 새 버전 수신, Linux·macOS, Copilot VS Code Agent, Copilot Cloud Agent(대상 저장소에 스킬을 커밋해야 함).
 
 ## 8. 업스트림과 사용자 설치본 분리
 
