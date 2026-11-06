@@ -11,6 +11,7 @@ State as of 2026-11-07. `[x]` = evidence exists in `PROJECT_TRACKER.md`; `[ ]` =
 - [x] Durable state (`AGENT_HANDOFF.md`, `.agent-handoff/`) read first and never modified; session claims never official
 - [x] Upstream SHAs pinned after license/source review; impact analysis report; PR adoption checklist
 - [x] Self-contained skill package (core inside the skill folder); gh skill + npx skills remote install verified (Windows 11)
+- [x] Existing AGENTS.md / CLAUDE.md / copilot-instructions.md survive install byte-identical; `inject-rules` adds one marked block idempotently and `--remove` restores original bytes (tests + real remote install)
 - [x] Unit tests on Windows + Linux in CI (Python 3.10, 3.12)
 - [x] Host smoke on Windows 11: Claude Code, Codex, OpenCode, Antigravity, Copilot CLI (see `docs/COMPATIBILITY.md` for exact scope)
 
