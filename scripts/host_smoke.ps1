@@ -61,7 +61,7 @@ foreach ($h in $targets) {
       'agy'      {
         if ($narrow) {
           # session-only settings REPLACE the allow list: reads, a few read-only commands and `python ...`; writes/rm/push denied
-          $agySettings = '{"permissions":{"allow":["read_file(*)","command(Get-Content)","command(Get-ChildItem)","command(Test-Path)","command(git status)","command(regex:^python(?:\s.*)?$)"],"deny":["write_file(*)","command(rm *)","command(git push*)"]}}'
+          $agySettings = '{"permissions":{"allow":["read_file(*)","command(Get-Content)","command(Get-ChildItem)","command(Test-Path)","command(git status)","command(regex:^python(?:\\s.*)?$)"],"deny":["write_file(*)","command(rm *)","command(git push*)"]}}'
           agy -p $prompt --settings $agySettings
         } else { agy -p $prompt }
       }
