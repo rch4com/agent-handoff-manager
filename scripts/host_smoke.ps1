@@ -4,7 +4,7 @@
   agent to WRITE a handoff, then verify the record with the core itself (not with the agent's report).
 .DESCRIPTION
   Runs real host CLIs, which spend model credits and execute the skill with the host's own permissions.
-  Run it yourself; it never touches your real repositories (temp dirs only). copilot/opencode run in a narrow-permission mode by default (the agent may only execute `python ...`; the payload is prepared by this script). Use -ComposePayload to let the agent compose the payload (needs broader permissions).
+  Run it yourself; it never touches your real repositories (temp dirs only). copilot/opencode/agy run in a narrow-permission mode by default (the agent may only execute `python ...`; the payload is prepared by this script). Use -ComposePayload to let the agent compose the payload (needs broader permissions).
 .EXAMPLE
   pwsh -File scripts/host_smoke.ps1 -Target copilot,opencode,agy -Python C:/Users/me/AppData/Local/Python/pythoncore-3.14-64/python.exe
   pwsh -File scripts/host_smoke.ps1 -DryRun     # install + core check only, no agent is started
@@ -40,7 +40,7 @@ foreach ($h in $targets) {
     $ver = & $Python $core.FullName --version
     if ($DryRun) { $results += "[dry-run] $h install OK, core: $ver ($dir)"; continue }
     $facts = "mission 'Add logging to app.py'; agent $($writerName[$h]); in_progress ['edit app.py']; changed_files [{path app.py, owner $($writerName[$h])}]; validation [{command 'python app.py', result not_run, evidence ''}]; next_action 'Add a logging call to app.py and run python app.py'; failed_attempts ['tried print(): no timestamps']"
-    $narrow = ($h -in @('copilot', 'opencode')) -and -not $ComposePayload
+    $narrow = ($h -in @('copilot', 'opencode', 'agy')) -and -not $ComposePayload
     if ($narrow) {
       # Narrow mode: payload prepared here; the agent may only run `python ...` (no file edits, no other commands).
       $payloadObj = [ordered]@{ agent = $writerName[$h]; mission = 'Add logging to app.py'; in_progress = @('edit app.py')
@@ -58,7 +58,13 @@ foreach ($h in $targets) {
         if ($narrow) { $env:OPENCODE_PERMISSION = '{"bash":{"python *":"allow","*":"deny"},"edit":"deny","webfetch":"deny"}' }
         try { opencode run -m $OpenCodeModel $prompt } finally { Remove-Item Env:OPENCODE_PERMISSION -ErrorAction SilentlyContinue }
       }
-      'agy'      { agy -p $prompt }
+      'agy'      {
+        if ($narrow) {
+          # session-only settings REPLACE the allow list: reads, a few read-only commands and `python ...`; writes/rm/push denied
+          $agySettings = '{"permissions":{"allow":["read_file(*)","command(Get-Content)","command(Get-ChildItem)","command(Test-Path)","command(git status)","command(regex:^python(?:\s.*)?$)"],"deny":["write_file(*)","command(rm *)","command(git push*)"]}}'
+          agy -p $prompt --settings $agySettings
+        } else { agy -p $prompt }
+      }
       'codex'    { codex exec --skip-git-repo-check -s workspace-write $prompt }
       'claude'   { claude -p $prompt --allowedTools 'Bash(python:*)' 'Read' 'Write' 'Skill' }
     }
