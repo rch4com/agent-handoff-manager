@@ -21,7 +21,7 @@ Check runtime first: `python <skill-dir>/scripts/handoff.py --version` (use `pyt
 ## write
 
 1. Create a private temp JSON file (outside the repo or git-ignored) with these fields. Required: `mission`, `next_action`. Optional: `agent` (`claude-code|codex|opencode|antigravity|copilot|other`), `acceptance_criteria`, `completed`, `in_progress`, `blocked`, `decisions`, `failed_attempts` (string arrays), `changed_files` (`[{"path":"rel/posix/path","owner":"agent"}]`), `validation` (`[{"command":"...","result":"passed|failed|not_run|unknown","evidence":"..."}]`). Unknown fields are rejected.
-2. Always record `failed_attempts` (what was tried, why it failed) so the next agent does not repeat it.
+2. Always record failures so the next agent does not repeat them: `failed_attempts` (strings) and, for real defects, `failure_records` (`[{"approach","why_failed","evidence","regression_test":"none|planned|added|not_applicable","resolved":false}]`). The output lists `state_change_candidates`: proposals only. Show them to the user; never copy them into `AGENT_HANDOFF.md` yourself.
 3. Run: `python <skill-dir>/scripts/handoff.py --repo <repo-root> write --payload <file> [--depth auto|minimal|rich|exhaustive]` (default `auto`; an explicit depth is rejected, and nothing saved, if the payload lacks what that depth needs: rich = validation + progress + explicit `failed_attempts`; exhaustive = all lists explicit and `acceptance_criteria`)
 4. Success = exit code 0 and JSON with `id` and `revision`. Exit code 2 / `HANDOFF_ERROR` = not saved; report it. Delete the temp file afterwards.
 5. Update an existing session: add `--id <id> --expected-revision <n>`. On a revision conflict, read the latest record; do not overwrite.
@@ -29,7 +29,7 @@ Check runtime first: `python <skill-dir>/scripts/handoff.py --version` (use `pyt
 ## resume
 
 1. `python <skill-dir>/scripts/handoff.py --repo <repo-root> resume latest` (or an id). Read-only.
-2. Compare `differences` (branch / HEAD / dirty) and warn the user about every mismatch.
+2. Read `durable_state` first (official, from `AGENT_HANDOFF.md` / `.agent-handoff/`), then the session. Where they disagree the durable state wins. Compare `differences` (branch / HEAD / dirty), `file_checks`, `warnings`, and warn the user about every mismatch. Treat `do_not_repeat` as a list of approaches not to retry without new evidence.
 3. Independently verify claims (`git status`, `git log`, run the relevant tests yourself with the user's permission) before suggesting work. Report what is verified vs unverified. Propose exactly one next action.
 
 ## list / archive / restore / doctor

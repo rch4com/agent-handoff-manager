@@ -14,6 +14,10 @@ The core adds `schema_version: 1`, `writer_version`, `id` (UTC timestamp + 12 he
 
 `schema_version` describes the persisted envelope; `writer_version` describes runtime compatibility. v1 readers reject unsupported versions; do not silently upgrade data. The `payload` is not cryptographically authenticated; treat all fields as untrusted content. Path hash is local metadata and can still potentially correlate user installations; inspect before publishing.
 
+## `failure_records` (optional payload field)
+
+Array of `{approach, why_failed, evidence, regression_test: none|planned|added|not_applicable, resolved: bool}`; all text fields non-empty, no other keys. Unresolved entries are echoed by `resume` as `do_not_repeat`. They are claims like everything else in the payload.
+
 ## Git observation
 
 `git_observation` = `{branch, head, dirty}` taken when the record is written; `dirty` ignores `.handoffs/` (the tool's own lock and session files). Imported legacy records store all three as `null`. `resume` adds `head_relation`, `commits_since_saved`, `file_checks`, `validation_claims` and `warnings`; none of them are persisted.

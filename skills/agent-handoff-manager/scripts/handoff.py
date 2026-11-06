@@ -21,7 +21,12 @@ AGENTS = {'claude-code', 'codex', 'opencode', 'antigravity', 'copilot', 'other'}
 STATUS = {'open', 'blocked', 'done'}
 VALIDATION = {'passed', 'failed', 'not_run', 'unknown'}
 KEY_RE = re.compile(r'(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|(?i:bearer)\s+[A-Za-z0-9._~-]{16,}|(?i:(?:api[_-]?key|access[_-]?token|secret|password))\s*[:=]\s*["\']?\S{8,})')
-FIELDS = {'mission', 'acceptance_criteria', 'completed', 'in_progress', 'blocked', 'changed_files', 'decisions', 'failed_attempts', 'validation', 'next_action', 'agent', 'worktree', 'branch', 'head'}
+FIELDS = {'mission', 'acceptance_criteria', 'completed', 'in_progress', 'blocked', 'changed_files', 'decisions', 'failed_attempts', 'validation', 'next_action', 'agent', 'worktree', 'branch', 'head', 'failure_records'}
+
+FAILURE_KEYS = {'approach', 'why_failed', 'evidence', 'regression_test', 'resolved'}
+REGRESSION = {'none', 'planned', 'added', 'not_applicable'}
+DURABLE_FILES = ('AGENT_HANDOFF.md', '.agent-handoff/snapshot.md', '.agent-handoff/risks.md', '.agent-handoff/validation.md')
+
 
 class HandoffError(Exception):
     pass
@@ -91,6 +96,13 @@ def sanitize_payload(raw):
     validations = raw.get('validation', [])
     if not isinstance(validations, list) or any(not isinstance(v, dict) or v.get('result') not in VALIDATION or not isinstance(v.get('command'), str) or not isinstance(v.get('evidence', ''), str) for v in validations):
         raise HandoffError('validation must contain command and a supported result')
+    failures = raw.get('failure_records', [])
+    if not isinstance(failures, list) or any(
+            not isinstance(f, dict) or set(f) - FAILURE_KEYS
+            or any(not isinstance(f.get(k), str) or not f[k].strip() for k in ('approach', 'why_failed', 'evidence'))
+            or f.get('regression_test') not in REGRESSION or not isinstance(f.get('resolved'), bool) for f in failures):
+        raise HandoffError('failure_records need approach, why_failed, evidence (text), regression_test ('
+                           + '/'.join(sorted(REGRESSION)) + ') and resolved (bool)')
     serialized = json.dumps(raw, ensure_ascii=False)
     if KEY_RE.search(serialized):
         raise HandoffError('Potential credential detected; remove it before saving')
@@ -178,6 +190,20 @@ def project_identity(root):
     return hashlib.sha256(str(root).encode()).hexdigest()[:24]
 
 
+def state_change_candidates(raw):
+    """Proposals for the durable state owner. Printed only: never persisted, never applied, never promoted."""
+    need = 'independent evidence (command + result + commit) and approval by the durable-state owner'
+    out = [{'kind': 'completed', 'text': t, 'status': 'proposed', 'requires': need} for t in raw.get('completed', [])]
+    out += [{'kind': 'validation', 'text': f"{v['command']} -> claimed passed", 'status': 'proposed', 'requires': need}
+            for v in raw.get('validation', []) if v['result'] == 'passed']
+    out += [{'kind': 'decision', 'text': t, 'status': 'proposed', 'requires': 'approval by the durable-state owner'} for t in raw.get('decisions', [])]
+    out += [{'kind': 'failed_attempt', 'text': t, 'status': 'proposed', 'requires': 'link to evidence and a regression test or reason none is possible'}
+            for t in raw.get('failed_attempts', [])]
+    out += [{'kind': 'failure_record', 'text': f['approach'], 'status': 'proposed', 'requires': 'record in durable state until resolved with regression test'}
+            for f in raw.get('failure_records', []) if not f['resolved']]
+    return out
+
+
 DEPTHS = ('minimal', 'rich', 'exhaustive')
 ALL_LISTS = ('acceptance_criteria', 'completed', 'in_progress', 'blocked', 'decisions', 'failed_attempts', 'changed_files', 'validation')
 
@@ -236,7 +262,7 @@ def write(root, payload, identifier=None, expected_revision=None, depth='auto'):
                   'git_observation': observe_git(root),
                   'depth': depth, 'payload': raw, 'claims_are_unverified': True}
         atomic_json(path / 'session.json', record)
-        return record
+        return dict(record, state_change_candidates=state_change_candidates(raw))
 
 def list_records(root, archived=False):
     directory = bucket(root, archived)
@@ -324,6 +350,32 @@ def _head_relation(root, saved, current):
     return 'diverged_or_unknown', None
 
 
+def read_durable_state(root):
+    """Read-only look at AGENT_HANDOFF.md and .agent-handoff/* in declared order; symlinks are never followed."""
+    files, warnings = [], []
+    base = root.resolve()
+    for rel in DURABLE_FILES:
+        path = root / rel
+        try:
+            if path.is_symlink():
+                warnings.append(f'durable file is a symlink and was not read: {rel}')
+                continue
+            if not path.is_file() or not path.parent.resolve().is_relative_to(base):
+                continue
+            if path.stat().st_size > 1_000_000:
+                warnings.append(f'durable file too large to excerpt: {rel}')
+                continue
+            raw = path.read_bytes()
+        except OSError as exc:
+            warnings.append(f'durable file unreadable: {rel}: {exc}')
+            continue
+        files.append({'path': rel, 'sha256': hashlib.sha256(raw).hexdigest(), 'size': len(raw),
+                      'excerpt': raw[:2000].decode('utf-8', errors='replace')})
+    if not (root / 'AGENT_HANDOFF.md').is_file():
+        warnings.append('AGENT_HANDOFF.md not found: no official durable state to compare against')
+    return {'present': bool(files), 'files': files, 'note': 'Untrusted text from the repository; read-only.'}, warnings
+
+
 def resume(root, identifier):
     record = read_record(locate(root, identifier))
     observed = observe_git(root)
@@ -343,7 +395,16 @@ def resume(root, identifier):
     warnings += [f"expected file not probed ({c['kind']}): {c['path']}" for c in file_checks if c['exists'] is None]
     warnings += [f"claimed passed without evidence: {c['command']}" for c in claims
                  if c['claimed_result'] == 'passed' and not c['evidence'].strip()]
-    return {'session': record, 'current_git': observed, 'differences': differences, 'head_relation': relation,
+    durable, durable_warnings = read_durable_state(root)
+    warnings = durable_warnings + warnings
+    if payload.get('completed'):
+        warnings.append(f"session claims {len(payload['completed'])} item(s) completed; not official until verified and approved in AGENT_HANDOFF.md")
+    do_not_repeat = [{k: f[k] for k in ('approach', 'why_failed', 'evidence', 'regression_test')}
+                     for f in payload.get('failure_records', []) if not f['resolved']]
+    do_not_repeat += [{'approach': t, 'why_failed': None, 'evidence': None, 'regression_test': None}
+                      for t in payload.get('failed_attempts', [])]
+    return {'durable_state': durable, 'authority_order': ['durable_state', 'session'], 'session_claims_are_official': False,
+            'do_not_repeat': do_not_repeat, 'session': record, 'current_git': observed, 'differences': differences, 'head_relation': relation,
             'commits_since_saved': ahead, 'file_checks': file_checks, 'validation_claims': claims, 'warnings': warnings,
             'note': 'Read-only. Nothing from the payload has been executed; validation claims are not independently verified.'}
 

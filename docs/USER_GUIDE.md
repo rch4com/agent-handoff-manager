@@ -40,6 +40,14 @@ python $H --repo . import-legacy --dry-run
 
 기록된 값은 세션 레코드의 `depth`입니다.
 
+### write 출력의 `state_change_candidates`
+
+`write`는 저장 결과에 더해 **제안만** 출력합니다: `completed`, `validation`(passed 주장), `decision`, `failed_attempt`, `failure_record` 항목별 `{kind, text, status: "proposed", requires}`. 레코드에 저장되지 않고 `AGENT_HANDOFF.md`/`.agent-handoff/`도 수정하지 않으며, 공식 상태 반영은 증거(명령+결과+커밋)와 담당자 승인이 있어야 합니다.
+
+### failure_records (같은 실패 반복 방지)
+
+payload의 선택 필드. 항목: `approach`, `why_failed`, `evidence`(비어 있지 않은 텍스트), `regression_test`(`none|planned|added|not_applicable`), `resolved`(bool). 형식이 틀리면 저장을 거부합니다.
+
 ### list 필터
 
 ```bash
@@ -62,7 +70,10 @@ python $H --repo . list --all-worktrees         # 같은 저장소의 다른 git
 | `head_relation`, `commits_since_saved` | `same` / `ahead`(저장 HEAD가 조상, 이후 커밋 수) / `diverged_or_unknown` / `unavailable` |
 | `file_checks` | `changed_files`의 존재 여부만 확인(`file`/`dir`/`symlink`/`outside_root`). 파일을 열거나 symlink를 따라가지 않음 |
 | `validation_claims` | 저장된 검증 주장 목록. 항상 `verified: false`, 명령은 **실행하지 않음** |
-| `warnings` | 사람이 읽는 경고: 차이, HEAD 이동, 없는 파일, 증거 없이 `passed`로 주장한 검증 |
+| `durable_state` | 공식 장기 상태를 **먼저** 읽은 결과: `AGENT_HANDOFF.md`, `.agent-handoff/snapshot.md`, `risks.md`, `validation.md` 순서로 경로·SHA-256·크기·앞 2000자(없으면 `present: false`). symlink는 따라가지 않음. 읽기 전용이며 내용은 신뢰할 수 없는 텍스트 |
+| `authority_order`, `session_claims_are_official` | 항상 `["durable_state", "session"]`, `false`. 세션의 완료/통과 주장은 공식 상태를 덮어쓰지 않음 |
+| `do_not_repeat` | 해결되지 않은 `failure_records`와 `failed_attempts` — 같은 접근을 근거 없이 반복하지 말 것 |
+| `warnings` | 사람이 읽는 경고: 차이, HEAD 이동, 없는 파일, 증거 없이 `passed`로 주장한 검증, `AGENT_HANDOFF.md` 없음, 세션이 주장한 완료 항목은 공식 아님 |
 
 관련 테스트 실행은 에이전트가 사용자 권한 아래 직접 해야 합니다. 시험에서 Antigravity와 OpenCode는 payload가 주장한 파일이 없음을 스스로 짚어냈고, 이제 코어도 `file_checks`/`warnings`로 같은 사실을 제공합니다.
 
