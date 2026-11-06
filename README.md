@@ -72,7 +72,7 @@ python -m unittest discover -s tests -v
 
 ## P0/P1 강화판 — 로컬 파일럿 추가 (2026-11-06)
 
-이 배포물은 **완성된 5개 에이전트 통합 제품이 아닌 개발 키트 + 실행 가능한 로컬 파일럿**입니다. `scripts/handoff.py`로 명시적 JSON payload 기반의 `init/write/list/resume/archive/restore/doctor`를 실행할 수 있습니다. 그러나 플랫폼별 실제 어댑터, 원격 스킬 설치, cross-machine 동기화는 미구현/미검증입니다. 기존 문서에 등장하는 광범위한 명령은 목표 계약일 수 있습니다.
+이 배포물은 **완성된 5개 에이전트 통합 제품이 아닌 개발 키트 + 실행 가능한 로컬 파일럿**입니다. `skills/agent-handoff-manager/scripts/handoff.py`로 명시적 JSON payload 기반의 `init/write/list/resume/archive/restore/doctor`를 실행할 수 있습니다. 그러나 플랫폼별 실제 어댑터, 원격 스킬 설치, cross-machine 동기화는 미구현/미검증입니다. 기존 문서에 등장하는 광범위한 명령은 목표 계약일 수 있습니다.
 
 실행 예시: [docs/PILOT_QUICKSTART.md](docs/PILOT_QUICKSTART.md). 규격: [docs/SCHEMA_SPEC.md](docs/SCHEMA_SPEC.md), [docs/ADAPTER_CONTRACT.md](docs/ADAPTER_CONTRACT.md), [docs/RECOVERY_PROTOCOL.md](docs/RECOVERY_PROTOCOL.md), [docs/RELEASE_GATES.md](docs/RELEASE_GATES.md). 테스트: `python -m unittest discover -s tests -v`.
 

@@ -1,6 +1,6 @@
 # Five-host adapter contract — integration specification (not shipped adapters)
 
-Every host (Claude Code, Codex, OpenCode, Antigravity, Copilot) MUST produce the same JSON payload described in `SCHEMA_SPEC.md`, write it to a private local file, and invoke `python scripts/handoff.py --repo <repo> write --payload <json-file>` with an absolute runtime path. The runtime must be present in that environment. Copilot cloud must not assume a globally installed CLI or access to desktop transcripts.
+Every host (Claude Code, Codex, OpenCode, Antigravity, Copilot) MUST produce the same JSON payload described in `SCHEMA_SPEC.md`, write it to a private local file, and invoke `python skills/agent-handoff-manager/scripts/handoff.py --repo <repo> write --payload <json-file>` with an absolute runtime path. The runtime must be present in that environment. Copilot cloud must not assume a globally installed CLI or access to desktop transcripts.
 
 ## Trust boundaries
 

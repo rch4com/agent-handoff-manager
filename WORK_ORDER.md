@@ -103,4 +103,4 @@
 
 ## 2026-11-06 P0/P1 implementation checkpoint
 
-A conservative local pilot core has been added at `scripts/handoff.py` with schema v1, revision checks, atomic single-file writes, lock, archive/restore and tests. This does **not** complete the five-host adapters, stronger distributed coordination, approved upstream SHA baselines, or packaged remote installation. Track these as unresolved tasks under `docs/RELEASE_GATES.md`; prioritize `docs/ADAPTER_CONTRACT.md`, `docs/SCHEMA_SPEC.md`, `docs/RECOVERY_PROTOCOL.md` before claiming production readiness.
+A conservative local pilot core has been added at `skills/agent-handoff-manager/scripts/handoff.py` with schema v1, revision checks, atomic single-file writes, lock, archive/restore and tests. This does **not** complete the five-host adapters, stronger distributed coordination, approved upstream SHA baselines, or packaged remote installation. Track these as unresolved tasks under `docs/RELEASE_GATES.md`; prioritize `docs/ADAPTER_CONTRACT.md`, `docs/SCHEMA_SPEC.md`, `docs/RECOVERY_PROTOCOL.md` before claiming production readiness.

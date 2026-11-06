@@ -4,7 +4,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from scripts import handoff
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "skills" / "agent-handoff-manager" / "scripts"))
+import handoff
 
 PAYLOAD = {'agent': 'codex', 'mission': 'Implement a small feature', 'next_action': 'Review tests',
            'acceptance_criteria': ['Tests pass'], 'validation': [{'command': 'python -m unittest', 'result': 'not_run', 'evidence': ''}],
@@ -52,6 +53,18 @@ class HandoffRuntimeTests(unittest.TestCase):
         record['status'] = 'archived'
         handoff.atomic_json(path / 'session.json', record)
         self.assertFalse(handoff.doctor(self.root)['ok'])
+
+    def test_session_dir_created_without_restrictive_mode(self):
+        # Regression R-001: mkdir(mode=0o700) gives owner-only ACL on Windows py>=3.13; sandboxed hosts could not read it.
+        from unittest import mock
+        real = Path.mkdir
+        modes = []
+        def spy(self, *a, **k):
+            modes.append(k.get('mode', a[0] if a else None))
+            return real(self, *a, **k)
+        with mock.patch.object(Path, 'mkdir', spy):
+            handoff.write(self.root, PAYLOAD)
+        self.assertNotIn(0o700, modes)
 
     def test_symlink_bucket_rejected(self):
         with tempfile.TemporaryDirectory() as other:

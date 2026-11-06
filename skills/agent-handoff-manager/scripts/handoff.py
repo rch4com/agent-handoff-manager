@@ -182,7 +182,7 @@ def write(root, payload, identifier=None, expected_revision=None):
         else:
             identifier = dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%SZ') + '-' + secrets.token_hex(6)
             path = bucket(root) / identifier
-            path.mkdir(mode=0o700)
+            path.mkdir()  # no mode: Python>=3.13 on Windows turns 0o700 into an owner-only ACL that blocks other processes (sandboxed agents, git)
             revision, created = 1, now()
         identity = hashlib.sha256(str(root).encode()).hexdigest()[:24]
         record = {'schema_version': 1, 'writer_version': VERSION, 'id': identifier,
@@ -247,8 +247,12 @@ def doctor(root):
     return {'ok': not issues, 'issues': issues}
 
 def main(argv=None):
+    for stream in (sys.stdout, sys.stderr):  # Windows consoles default to cp949/cp1252; output is JSON with ensure_ascii=False
+        if hasattr(stream, 'reconfigure'):
+            stream.reconfigure(encoding='utf-8')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--repo', default='.')
+    parser.add_argument('--version', action='version', version=f'agent-handoff-manager core {VERSION}')
     commands = parser.add_subparsers(dest='cmd', required=True)
     commands.add_parser('init')
     wr = commands.add_parser('write'); wr.add_argument('--payload', required=True, help='Local JSON payload file; never executes embedded commands'); wr.add_argument('--id'); wr.add_argument('--expected-revision', type=int)

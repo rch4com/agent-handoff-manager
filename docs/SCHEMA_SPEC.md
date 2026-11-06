@@ -1,6 +1,6 @@
 # Session schema v1 — pilot normative contract
 
-`session.json` is UTF-8 JSON under `.handoffs/sessions/<id>/` (or `.handoffs/archive/<id>/`). The deterministic core is `scripts/handoff.py`; the host supplies an explicit JSON payload and the core does **not** read conversations. The external payload and persisted record are different objects.
+`session.json` is UTF-8 JSON under `.handoffs/sessions/<id>/` (or `.handoffs/archive/<id>/`). The deterministic core is `skills/agent-handoff-manager/scripts/handoff.py`; the host supplies an explicit JSON payload and the core does **not** read conversations. The external payload and persisted record are different objects.
 
 ## Accepted input payload
 

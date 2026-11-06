@@ -1,20 +1,28 @@
 {
-  "schema_version": 1,
   "policy": "review-before-adopt",
+  "schema_version": 1,
   "sources": [
     {
+      "adopted_sha": "ef01fa9db0ea0aab19141954644a1049da4da795",
+      "adoption_scope": "design-reference-only; no upstream source file vendored (ADR-0003)",
       "id": "agent-handoff",
-      "repo": "WeirdSky924/agent-handoff-skill",
+      "license": "MIT",
+      "license_blob_sha": "bbf0adc0f98e1716d354e30cf601873f3fc5b0b2",
+      "purpose": "Durable repository memory and compaction",
       "ref": "main",
-      "adopted_sha": null,
-      "purpose": "Durable repository memory and compaction"
+      "repo": "WeirdSky924/agent-handoff-skill",
+      "reviewed_on": "2026-11-06"
     },
     {
+      "adopted_sha": "b6ad33e52c8c72f95cbafb006b7c7347c34f3ec8",
+      "adoption_scope": "design-reference-only; no upstream source file vendored (ADR-0003)",
       "id": "claude-handoff",
-      "repo": "aploe/claude-handoff-skill",
+      "license": "MIT",
+      "license_blob_sha": "a0a2e818e69cd129bc3e49e7f9af9c1f6701e985",
+      "purpose": "Session write, resume, list, archive",
       "ref": "main",
-      "adopted_sha": null,
-      "purpose": "Session write, resume, list, archive"
+      "repo": "aploe/claude-handoff-skill",
+      "reviewed_on": "2026-11-06"
     }
   ]
 }

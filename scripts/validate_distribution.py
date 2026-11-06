@@ -12,7 +12,7 @@ REQUIRED = [
     'docs/INSTALLATION_AND_SHARING.md', 'docs/COPILOT_SETUP.md',
     'docs/MARKETPLACES.md', 'docs/COMPATIBILITY.md',
     '.github/copilot-instructions.md',
-    'scripts/check_upstreams.py', 'scripts/handoff.py', 'upstreams.lock.json',
+    'scripts/check_upstreams.py', 'skills/agent-handoff-manager/scripts/handoff.py', 'THIRD_PARTY_NOTICES.md', 'docs/ADR-0002.md', 'docs/ADR-0003.md', 'upstreams.lock.json',
     'docs/SCHEMA_SPEC.md', 'docs/ADAPTER_CONTRACT.md', 'docs/RECOVERY_PROTOCOL.md',
     'docs/RELEASE_GATES.md', 'docs/PILOT_QUICKSTART.md', 'examples/session_payload.json',
 ]
@@ -35,8 +35,12 @@ def validate(root=ROOT):
             failures.append('skill name differs from canonical directory')
         if '\ndescription:' not in content:
             failures.append('SKILL.md missing description')
-        if 'NOT an operational skill' not in content:
-            failures.append('development status not explicit')
+        if 'experimental' not in content.lower():
+            failures.append('experimental status not explicit')
+        if '../' in content or '(scripts/' in content:
+            failures.append('SKILL.md references paths outside its own directory')
+        if not (skill.parent / 'scripts' / 'handoff.py').is_file():
+            failures.append('core is not inside the skill directory (ADR-0002)')
     if (root/'README.md').exists():
         s=(root/'README.md').read_text(encoding='utf-8')
         for p in PLATFORMS:

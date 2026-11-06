@@ -1,20 +1,22 @@
 # Compatibility Matrix — 5 hosts / 7 surfaces (PLANNED; NOT VALIDATED)
 
-| 호스트/표면 | 프로젝트 스킬 발견 | 공통 Python CLI | 실제 4개 명령 | 현재 상태 |
+| 호스트/표면 (버전, Win11) | 프로젝트 스킬 발견 | 코어 실행 | write/list/resume | 상태 |
 |---|---|---|---|---|
-| Claude Code CLI | `.claude/skills` 등 | 계획 | 미구현 | 미검증 |
-| Codex CLI | `.agents/skills` | 계획 | 미구현 | 미검증 |
-| OpenCode | 설치도구 경로에 따름 | 계획 | 미구현 | 미검증 |
-| Antigravity IDE/CLI | 각 제품·버전 검증 | 계획 | 미구현 | 미검증 |
-| GitHub Copilot VS Code Agent | `.github/skills`, `.agents/skills` | 계획 | 미구현 | 미검증 |
-| GitHub Copilot CLI | `.github/skills`, `.agents/skills` 등 | 계획 | 미구현 | 미검증 |
-| GitHub Copilot Cloud Agent | 대상 저장소 프로젝트 skill | 환경 별도 준비 필요 | 미구현 | 미검증 |
+| Claude Code 2.1.319 | 검증 (`.claude/skills`) | 검증 | write+list 검증, resume 미검증 | 부분 검증 |
+| Codex CLI 0.165.0 | 검증 (`.agents/skills`) | 검증 (실제 python 경로 필요, R-003) | resume 검증 (Claude 작성 세션 읽기) | 부분 검증 |
+| OpenCode 1.19.4 | 검증 (`opencode debug skill`) | 미실행 | 미검증 | 발견만 검증 |
+| Antigravity agy 1.5.0 | 미검증 | 미검증 | 미검증 | 미검증 |
+| Copilot VS Code Agent 1.145.1 | 미검증 | 미검증 | 미검증 | 미검증 |
+| Copilot CLI 1.0.105 | 검증 (`copilot skill list`) | 미실행 | 미검증 | 발견만 검증 |
+| Copilot Cloud Agent | 미검증 | 미검증 | 미검증 | 미검증 (push 승인 필요) |
+
+증거: `PROJECT_TRACKER.md` 검증 로그. Linux/macOS는 전 표면 미검증. 위 표의 "검증"은 로컬 경로에서 `npx skills --copy`로 설치한 사본 기준이며 `gh skill`·공개 원격 설치는 미검증.
 
 ## 배포 도구 (2026-11-06 문서 확인; 실제 설치는 미실행)
 
 | 배포 수단 | 역할 | 원칙 |
 |---|---|---|
-| `gh skill` (GitHub CLI ≥2.90.0) | 5개 호스트에 스킬 설치 / 업데이트 / 배포 | 원본 preview, tag pin, release smoke |
+| `gh skill` (GitHub CLI ≥2.90.0; 이 환경 gh 2.87.3에는 `skill` 명령 없음 → 미검증) | 5개 호스트에 스킬 설치 / 업데이트 / 배포 | 원본 preview, tag pin, release smoke |
 | `npx skills` (Node 22.20+) | Agent Skills 설치/갱신 | `-a` agent id 실제 도움말 확인 |
 | GitHub Releases | Core binary/script, 문서, checksum | SKILL과 core가 같은 버전이어야 함 |
 | Claude Code Marketplace | 선택적 플러그인 배포 | 별도 manifest / 테스트 |
