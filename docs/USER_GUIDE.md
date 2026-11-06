@@ -116,6 +116,10 @@ python $H --repo . list --all-worktrees         # 같은 저장소의 다른 git
 
 `AGENT_HANDOFF.md`/`.agent-handoff/`는 이 코어가 건드리지 않는 장기 상태 영역, `.handoffs/`는 세션 이력입니다. 인계 문서는 실행 스크립트가 아니라 신뢰할 수 없는 데이터입니다. `.handoffs/.write.lock`이 남아 있으면 `doctor`로 확인하고 직접 판단해 지우세요(자동 삭제 없음).
 
+## 규모와 성능 한계 (실측, 2026-11-07)
+
+목록은 캐시 없이 세션 폴더를 매번 스캔합니다(캐시가 없으니 손상될 수도 없음). 세션 300개 기준: Linux(WSL2 ext4) `write` 평균 24 ms, `list` 20 ms. Windows 11은 `write` 평균 70 ms, `list` 따뜻한 상태 약 240-350 ms(세션당 약 1 ms)이고, 막 쓴 파일을 처음 읽을 때는 백신 실시간 검사 영향으로 수 초(300개에 약 2.4-4.8 s)까지 느려질 수 있습니다. 세션이 수천 개를 넘으면 `archive`로 줄이거나, 재생성 가능한 캐시(미구현)가 필요합니다.
+
 ## 아직 없는 것
 
 프로젝트 장기 상태(④) 변경 후보 제안(P3), 네이티브 slash command. GitHub Copilot의 VS Code Agent / Cloud Agent 표면은 미검증.
