@@ -166,6 +166,10 @@ def locate(root, identifier, archived=None):
         raise HandoffError('Session not found or duplicated')
     return safe_dir(found[0])
 
+def project_identity(root):
+    return hashlib.sha256(str(root).encode()).hexdigest()[:24]
+
+
 def write(root, payload, identifier=None, expected_revision=None):
     raw = sanitize_payload(payload)
     init(root)
@@ -184,7 +188,7 @@ def write(root, payload, identifier=None, expected_revision=None):
             path = bucket(root) / identifier
             path.mkdir()  # no mode: Python>=3.13 on Windows turns 0o700 into an owner-only ACL that blocks other processes (sandboxed agents, git)
             revision, created = 1, now()
-        identity = hashlib.sha256(str(root).encode()).hexdigest()[:24]
+        identity = project_identity(root)
         record = {'schema_version': 1, 'writer_version': VERSION, 'id': identifier,
                   'project_id': identity, 'revision': revision, 'status': 'open',
                   'created_at': created, 'updated_at': now(),
@@ -219,6 +223,155 @@ def transition(root, identifier, to_archive):
             atomic_json(source / 'session.json', original)
             raise
         return updated
+
+LEGACY_NAME_RE = re.compile(r'^(\d{4})-(\d{2})-(\d{2})-(\d{4})-.+\.md$')
+AGENT_HINTS = (('claude', 'claude-code'), ('codex', 'codex'), ('opencode', 'opencode'), ('antigravity', 'antigravity'), ('copilot', 'copilot'))
+
+
+def _section(text, number):
+    m = re.search(rf'^## {number}\. .*$', text, re.M)
+    if not m:
+        return ''
+    rest = text[m.end():]
+    nxt = re.search(r'^## ', rest, re.M)
+    return (rest[:nxt.start()] if nxt else rest).strip()
+
+
+def _bad_rel_path(p):
+    return not p or p.startswith(('/', '\\')) or '\\' in p or any(part == '..' for part in p.split('/')) or bool(re.match(r'^[A-Za-z]:', p))
+
+
+def _bullets(section, marker, label):
+    out = []
+    for m in re.finditer(rf'^\s*[-*]\s*{marker}\s*(?:{label}:)?\s*(.+)$', section, re.M):
+        item = m.group(1).strip()
+        if item and not item.startswith(('<', '(nothing')):
+            out.append(item)
+    return out
+
+
+def parse_legacy(text, name):
+    """Best-effort parse of an aploe/claude-handoff-skill v1 document; None if it is not one."""
+    title = re.search(r'^# Handoff:\s*(.+)$', text, re.M)
+    if not title and 'HANDOFF-DOC v' not in text:
+        return None
+
+    def squash(value, limit=1000):
+        return re.sub(r'\s+', ' ', value).strip()[:limit]
+
+    mission = squash(_section(text, 1)) or (title.group(1).strip() if title else name)
+    next_action = squash(_section(text, 3)) or 'UNKNOWN: see legacy_import.original_text'
+    who = re.search(r'Original Agent:\*{0,2}\s*(.+?)(?:\s*·|$)', text, re.M)
+    agent = 'other'
+    for hint, value in AGENT_HINTS:
+        if who and hint in who.group(1).lower():
+            agent = value
+            break
+    state = _section(text, 2)
+    changed = []
+    for line in _section(text, 5).splitlines():
+        cells = [c.strip().strip('`') for c in line.strip().strip('|').split('|')]
+        if line.strip().startswith('|') and len(cells) >= 2 and cells[0].lower() != 'file' and not set(cells[0]) <= set('-: '):
+            if not _bad_rel_path(cells[0]):
+                changed.append({'path': cells[0], 'owner': agent})
+    return {'agent': agent, 'mission': mission, 'next_action': next_action,
+            'completed': _bullets(state, '✅', 'Done'), 'in_progress': _bullets(state, '🔄', 'In Progress'),
+            'blocked': _bullets(state, '⏸️?', 'Blocked'), 'changed_files': changed}
+
+
+def _legacy_created(name, path):
+    m = LEGACY_NAME_RE.match(name)
+    if m:
+        y, mo, d, hm = int(m[1]), int(m[2]), int(m[3]), m[4]
+        try:  # upstream stamps are local time without zone: conversion uses this machine's zone (approximate)
+            return dt.datetime(y, mo, d, int(hm[:2]), int(hm[2:])).astimezone(dt.timezone.utc)
+        except ValueError:
+            pass
+    return dt.datetime.fromtimestamp(path.stat().st_mtime, dt.timezone.utc)
+
+
+def import_legacy(root, dry_run=False):
+    """Copy legacy .handoffs/*.md into session records. Never modifies, moves or deletes the originals."""
+    result = {'imported': [], 'would_import': [], 'skipped': []}
+    base = home(root)
+    if not base.is_dir():
+        return result
+    if not dry_run:
+        init(root)
+    known = set()
+    for archived in (False, True):
+        directory = bucket(root, archived)
+        if directory.is_dir():
+            for d in directory.iterdir():
+                try:
+                    known.add(read_record(d).get('legacy_import', {}).get('source_sha256'))
+                except HandoffError:
+                    pass
+    lock = None if dry_run else StoreLock(root)
+    if lock:
+        lock.__enter__()
+    try:
+        for path in sorted(base.glob('*.md')):
+            def skip(reason, path=path):
+                result['skipped'].append({'file': path.name, 'reason': reason})
+            if path.is_symlink():
+                skip('symlink')
+                continue
+            if not path.is_file():
+                continue
+            if path.stat().st_size > 256_000:
+                skip('too_large')
+                continue
+            raw = path.read_bytes()
+            try:
+                text = raw.decode('utf-8')
+            except UnicodeDecodeError:
+                skip('not_utf8')
+                continue
+            parsed = parse_legacy(text, path.name)
+            if parsed is None:
+                skip('not_a_handoff_doc')
+                continue
+            if KEY_RE.search(text):
+                skip('possible_credential')
+                continue
+            digest = hashlib.sha256(raw).hexdigest()
+            if digest in known:
+                skip('already_imported')
+                continue
+            created = _legacy_created(path.name, path)
+            identifier = created.strftime('%Y%m%dT%H%M%SZ') + '-' + digest[:12]
+            entry = {'file': path.name, 'id': identifier}
+            if dry_run:
+                result['would_import'].append(entry)
+                continue
+            stamp = now()
+            record = {'schema_version': 1, 'writer_version': VERSION, 'id': identifier,
+                      'project_id': project_identity(root), 'revision': 1, 'status': 'open',
+                      'created_at': created.isoformat(timespec='seconds').replace('+00:00', 'Z'), 'updated_at': stamp,
+                      'git_observation': {'branch': None, 'head': None, 'dirty': None},
+                      'payload': sanitize_payload(parsed), 'claims_are_unverified': True,
+                      'legacy_import': {'format': 'claude-handoff-skill v1', 'source_file': path.name,
+                                        'source_sha256': digest, 'imported_at': stamp,
+                                        'created_at_is_approximate': True, 'original_text': text}}
+            target = bucket(root) / identifier
+            try:
+                target.mkdir()
+            except FileExistsError:
+                skip('id_collision')
+                continue
+            try:
+                atomic_json(target / 'session.json', record)
+            except BaseException:
+                shutil.rmtree(target, ignore_errors=True)
+                raise
+            known.add(digest)
+            result['imported'].append(entry)
+    finally:
+        if lock:
+            lock.__exit__()
+    return result
+
 
 def doctor(root):
     issues = []
@@ -261,6 +414,8 @@ def main(argv=None):
     ar = commands.add_parser('archive'); ar.add_argument('id'); ar.add_argument('--confirm', action='store_true')
     rs = commands.add_parser('restore'); rs.add_argument('id'); rs.add_argument('--confirm', action='store_true')
     commands.add_parser('doctor')
+    il = commands.add_parser('import-legacy')
+    il.add_argument('--dry-run', action='store_true', help='Report what would be imported; write nothing')
     args = parser.parse_args(argv)
     try:
         root = ensure_repo(args.repo)
@@ -274,6 +429,7 @@ def main(argv=None):
         elif args.cmd == 'list': result = list_records(root, args.archived)
         elif args.cmd == 'resume': result = resume(root, args.id)
         elif args.cmd == 'doctor': result = doctor(root)
+        elif args.cmd == 'import-legacy': result = import_legacy(root, args.dry_run)
         else:
             if not args.confirm:
                 raise HandoffError('Explicit --confirm required')

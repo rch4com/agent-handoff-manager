@@ -12,6 +12,9 @@ python skills/agent-handoff-manager/scripts/handoff.py --repo . doctor
 python skills/agent-handoff-manager/scripts/handoff.py --repo . archive SESSION_ID --confirm
 python skills/agent-handoff-manager/scripts/handoff.py --repo . list --archived
 python skills/agent-handoff-manager/scripts/handoff.py --repo . restore SESSION_ID --confirm
+# Import ③ legacy .handoffs/*.md (originals untouched; use --dry-run first):
+python skills/agent-handoff-manager/scripts/handoff.py --repo . import-legacy --dry-run
+python skills/agent-handoff-manager/scripts/handoff.py --repo . import-legacy
 # Updating an existing record requires a current revision:
 python skills/agent-handoff-manager/scripts/handoff.py --repo . write --payload examples/session_payload.json --id SESSION_ID --expected-revision 1
 ```

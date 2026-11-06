@@ -8,7 +8,7 @@
 | P0-02 | ③ 원본 구조 조사 | DONE | `gh api`: ③ @b6ad33e5… (MIT, prompt-only plugin, no scripts); ADR-0003 | 미지정 | — |
 | P0-03 | 두 MIT 원본 고지 | DONE | LICENSE blobs bbf0adc0…/a0a2e818… fetched verbatim -> `THIRD_PARTY_NOTICES.md`; nothing vendored; `check_upstreams.py` live: both up_to_date | 미지정 | Re-run notices review if code is ever vendored |
 | P1-01 | 세션 스키마/스토리지 | NEEDS_REVIEW | pilot core `skills/agent-handoff-manager/scripts/handoff.py`; 19 tests OK (1 skipped: symlink needs privilege) | 미지정 | Crash-injection + multi-process tests; real `project_id` |
-| P1-02 | 레거시 이관 | TODO | 없음 | 미지정 | 구현 |
+| P1-02 | 레거시 이관 | NEEDS_REVIEW | `import-legacy [--dry-run]`: 7 tests in tests/test_legacy_import.py (lossless + originals byte-identical, idempotent, dry-run, secret skip, symlink/non-handoff skip, ④/AGENTS/CLAUDE/copilot files untouched over 3x init+import, CLI); red-before-green; manual run in non-ASCII path. Fixture is hand-written from upstream template, NOT output of the real ③ plugin | 미지정 | Run against real ③-generated docs; legacy status/INDEX not imported (by design) |
 | P2-01 | write | NEEDS_REVIEW | write verified via Claude Code 2.1.319 (haiku) on installed copy; unit tests | 미지정 | `--depth`, ④ change candidates (P3) |
 | P2-02 | resume | NEEDS_REVIEW | resume verified by Codex 0.165.0 reading a Claude-written session (read-only, git diff reported) | 미지정 | Add checks: expected files / tests |
 | P2-03 | list | NEEDS_REVIEW | list verified via Claude Code + unit tests | 미지정 | Filters (project/status/agent/date), worktree test |
@@ -44,7 +44,8 @@
 | 시각(UTC) | ID | 환경 | 명령 | 결과 | 커밋/로그 |
 |---|---|---|---|---|---|
 | 2026-11-06 | P0-03 | Win11, py3.14.6 | `python scripts/check_upstreams.py` | both up_to_date | — |
-| 2026-11-06 | P1/P2 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 19 tests OK, 1 skipped | working tree (uncommitted at log time) |
+| 2026-11-06 | P1/P2 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 19 tests OK, 1 skipped | 73c1586 |
+| 2026-11-07 | P1-02 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 26 tests OK, 1 skipped (symlink privilege) | see commit below |
 | 2026-11-06 | P4-08 | Win11, node 26.13, npx skills | `npx skills add D:/…/agent-handoff-manager --skill agent-handoff-manager -a claude-code -a codex -a opencode -a antigravity -a github-copilot --copy -y` | installed `.agents/skills`+`.claude/skills`, identical copies, script runs | scratchpad proj1 |
 | 2026-11-06 | P4-01 | Claude Code 2.1.319 | `claude -p … --model haiku --allowedTools Bash(python:*)…` write+list | session created, id reported | `.handoffs/sessions/20261106T045455Z-61fc48eb5653` |
 | 2026-11-06 | P4-02 | codex-cli 0.165.0 | `codex exec -s workspace-write` resume latest | 1st run blocked (R-003), 2nd run OK, no diffs vs saved | — |

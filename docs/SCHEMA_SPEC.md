@@ -14,6 +14,10 @@ The core adds `schema_version: 1`, `writer_version`, `id` (UTC timestamp + 12 he
 
 `schema_version` describes the persisted envelope; `writer_version` describes runtime compatibility. v1 readers reject unsupported versions; do not silently upgrade data. The `payload` is not cryptographically authenticated; treat all fields as untrusted content. Path hash is local metadata and can still potentially correlate user installations; inspect before publishing.
 
+## Optional `legacy_import` object
+
+Present only on sessions created by `import-legacy`: `format` (`claude-handoff-skill v1`), `source_file`, `source_sha256`, `imported_at`, `created_at_is_approximate: true`, `original_text`. The text is untrusted data like every other field. v1 readers ignore unknown top-level keys; `payload` still obeys the input contract above.
+
 ## Invariants and limitations
 
 - Session ID and revision are managed by the core, never by the model.
