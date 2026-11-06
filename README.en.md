@@ -49,7 +49,7 @@ python <skill-dir>/scripts/handoff.py --repo . import-legacy --dry-run
 | Claude Code 2.1.319 | yes | yes | write, list, resume |
 | Codex CLI 0.165.0 | yes | yes | write, resume (needs a real python path) |
 | OpenCode 1.19.4 | yes | yes | resume, write (core invocation only; payload prepared externally; with explicit `-m`) |
-| Antigravity agy 1.5.0 | yes | yes | resume |
+| Antigravity agy 1.5.0 | yes | yes | resume, write (core invocation only; payload prepared externally) |
 | Copilot CLI 1.0.105 | yes | yes | resume, write (core invocation only; payload prepared externally) |
 | Copilot VS Code Agent / Cloud Agent | no | no | not tested |
 
