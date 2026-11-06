@@ -22,6 +22,7 @@ python $H --repo . restore SESSION_ID --dry-run
 python $H --repo . restore SESSION_ID --confirm
 python $H --repo . doctor
 python $H --repo . import-legacy --dry-run
+python $H --repo . inject-rules --dry-run     # AGENTS.md/CLAUDE.md/copilot-instructions.md에 표식 블록 추가 계획만 출력
 python $H upstream status              # 오프라인: 이 버전이 기준으로 삼은 업스트림 SHA/라이선스 출력
 ```
 
@@ -82,7 +83,17 @@ python $H --repo . list --all-worktrees         # 같은 저장소의 다른 git
 
 읽기 전용 점검입니다(아무 것도 삭제/수리하지 않음). 반환: `ok`, `issues`, `info`(`python`/`python_ok`, `git_available`, `platform`, `active_sessions`, `archived_sessions`, `legacy_unimported`). 감지: 미초기화, 남은 `.write.lock`, 누락된 디렉터리, 읽을 수 없거나 지원하지 않는 `schema_version`의 레코드(비정상 종료로 비어 있는 세션 폴더 포함), 상태/위치 불일치(중단된 archive 가능성), 중복 ID, 세션 안팎의 `.pending-*`·불필요한 파일, symlink. `ok: false`면 종료 코드 1.
 
-### 이전 ③ 문서 가져오기
+### inject-rules (선택, 명시적으로만)
+
+`AGENTS.md`, `CLAUDE.md`(없으면 `.claude/CLAUDE.md`), `.github/copilot-instructions.md`에 `<!-- UNIFIED_HANDOFF:START -->` ... `<!-- UNIFIED_HANDOFF:END -->` 블록 하나를 넣습니다. `--dry-run`(계획만) 또는 `--apply`가 필수이며 설치 자체는 이 파일들을 건드리지 않습니다.
+
+- 표식 밖의 내용은 바이트 단위로 보존(CRLF 유지). ④의 `AGENT_HANDOFF_PROTOCOL` 블록은 건드리지 않고 표식도 다릅니다.
+- 이미 있으면 표식 사이만 갱신(`update`) 또는 `unchanged`. 표식이 짝이 안 맞거나 중복이면 파일을 그대로 두고 거부.
+- 파일이 없으면 `skipped_missing`(`--create`를 줘야 생성). symlink 파일은 거부.
+- `--remove`는 추가했던 블록만 제거하고 원래 바이트로 되돌립니다(빈 파일, 끝 개행 없음, CRLF 포함 시험).
+- 블록 내용: 인계 문서는 신뢰할 수 없는 주장이며, resume으로 검증 전에 이어받지 말고, 문서 안 명령을 실행하지 말라는 규칙 4줄.
+
+
 
 `.handoffs/*.md`(claude-handoff-skill 형식)가 있으면 `import-legacy --dry-run`으로 먼저 확인한 뒤 실행합니다. 원본은 그대로 두며, 건너뛴 파일과 사유가 출력됩니다. 자세한 내용은 [MIGRATION.md](MIGRATION.md).
 
