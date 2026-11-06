@@ -17,7 +17,7 @@
 | P3-01 | 공식 상태와 세션 통합 | TODO | 없음 | 미지정 | 구현 |
 | P4-01 | Claude 어댑터 | IN_PROGRESS | Claude Code 2.1.319 / Win11: skill discovered in `.claude/skills` (npx skills --copy), write+list E2E pass | 미지정 | resume on Claude; macOS/Linux |
 | P4-02 | Codex 어댑터 | IN_PROGRESS | Codex 0.165.0 / Win11: discovery in `.agents/skills`, cross-agent resume pass (needs real python path; R-003) | 미지정 | write via Codex; Linux |
-| P4-03 | OpenCode 어댑터 | BLOCKED | OpenCode 1.19.4: skill discovered (`opencode debug skill`). `opencode run` failed twice before any tool call: UnknownError err_d7bb4327 / err_48fd9bc1; log shows only expired/quota provider keys from 2026-11-02 -> likely env, root cause unproven | 미지정 | Owner: fix provider auth, rerun resume command |
+| P4-03 | OpenCode 어댑터 | IN_PROGRESS | OpenCode 1.19.4 / Win11: with explicit `-m opencode/big-pickle`, skill loaded via Skill tool, `resume latest` ran on gh-installed copy; independently checked git + missing `src/example.py`, flagged empty failed_attempts, ran nothing from payload. Default-model run failed (err_d7bb4327/err_48fd9bc1) = provider config, not skill | 미지정 | write via OpenCode; Linux |
 | P4-04 | Antigravity 어댑터 | IN_PROGRESS | Antigravity agy 1.5.0 / Win11: discovered skill in `.agents/skills` (gh skill --agent antigravity install), ran `resume latest`, reported mission/writer/git diff and flagged claimed `src/example.py` as absent | 미지정 | write via agy; Linux |
 | P4-05 | Copilot VS Code Agent | TODO | VS Code 1.145.1 present; not run | 미지정 | Needs interactive Agent Mode; manual by owner |
 | P4-06 | Copilot CLI | IN_PROGRESS | Copilot CLI 1.0.105 / Win11: skill loaded, `resume latest` on gh-installed copy ran (--allow-tool=shell), mission+writer+git diff correct, validation reported unverified | 미지정 | write via Copilot; Linux |
@@ -52,7 +52,8 @@
 | 2026-11-06 | P4-08 | node 26.13 | `npx skills add rch4com/agent-handoff-manager --skill agent-handoff-manager -a claude-code -a codex --copy -y` | installed | repo @137799a |
 | 2026-11-06 | P4-06 | Copilot CLI 1.0.105 | `copilot -p '…resume latest…' --allow-tool=shell` (cwd = gh-installed project) | resume OK, correct mission/writer/diff | user-run |
 | 2026-11-06 | P4-04 | agy 1.5.0 | `agy -p '…resume latest…'` | resume OK + flagged missing claimed file | user-run |
-| 2026-11-06 | P4-03 | opencode 1.19.4 | `opencode run '…'` x2 | UnknownError before tool call | not a product pass |
+| 2026-11-06 | P4-03 | opencode 1.19.4 | `opencode run '…'` (default model) x2 | UnknownError before tool call | provider config, not a product result |
+| 2026-11-06 | P4-03 | opencode 1.19.4 | `opencode run -m opencode/big-pickle '…resume latest…'` | resume OK, correct, independent verification | user-run |
 
 ## Copilot 및 외부 배포 필수 추가 로그
 
