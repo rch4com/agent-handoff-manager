@@ -11,7 +11,7 @@
 | P1-02 | 레거시 이관 | NEEDS_REVIEW | `import-legacy [--dry-run]`: 7 tests in tests/test_legacy_import.py (lossless + originals byte-identical, idempotent, dry-run, secret skip, symlink/non-handoff skip, ④/AGENTS/CLAUDE/copilot files untouched over 3x init+import, CLI); red-before-green; manual run in non-ASCII path. Fixture is hand-written from upstream template, NOT output of the real ③ plugin | 미지정 | Run against real ③-generated docs; legacy status/INDEX not imported (by design) |
 | P2-01 | write | NEEDS_REVIEW | write verified via Claude Code 2.1.319 (haiku) on installed copy; unit tests | 미지정 | `--depth`, ④ change candidates (P3) |
 | P2-02 | resume | NEEDS_REVIEW | resume verified by Codex 0.165.0 reading a Claude-written session (read-only, git diff reported) | 미지정 | Add checks: expected files / tests |
-| P2-03 | list | NEEDS_REVIEW | list verified via Claude Code + unit tests | 미지정 | Filters (project/status/agent/date), worktree test |
+| P2-03 | list | NEEDS_REVIEW | tests/test_list_filters.py: status/agent/date filters (+invalid input rejected, CLI), `--all-worktrees` over a real `git worktree add` with non-ASCII path (read-only, `worktree_root` tagged); Claude Code list E2E earlier | 미지정 | Project filter n/a (project_id is a path hash); Linux run; crash/perf on many sessions |
 | P2-04 | archive/restore | NEEDS_REVIEW | archive/restore: unit + clean-copy lifecycle test (non-ASCII path) | 미지정 | `--dry-run` |
 | P2-05 | doctor | NEEDS_REVIEW | doctor: unit + clean-copy test | 미지정 | CLI/path compat checks |
 | P3-01 | 공식 상태와 세션 통합 | TODO | 없음 | 미지정 | 구현 |
@@ -27,6 +27,7 @@
 | P5-02 | 변경 영향분석/PR 흐름 | TODO | 없음 | 미지정 | 구현 |
 | P5-03 | 공개 배포 및 외부 시험 | TODO | 없음 | 미지정 | 구현 |
 | P5-04 | Claude/Copilot Marketplace | TODO | 플랫폼 문서 확인, manifest 미구현 | 미지정 | 별도 플러그인 검증 |
+| DOC-02 | README/EN/USER_GUIDE 실행 결과 동기화 | NEEDS_REVIEW | tests/test_docs_sync.py: 문서의 모든 서브커맨드/플래그가 실제 CLI에 존재 | 미지정 | INSTALLATION_AND_SHARING/COPILOT_SETUP 재작성 |
 | DOC-01 | 설치/배포/ Copilot 문서 | SCAFFOLD | INSTALLATION_AND_SHARING, COPILOT_SETUP, MARKETPLACES | 미지정 | 실제 설치 후 업데이트 |
 
 상태: `TODO`, `IN_PROGRESS`, `NEEDS_REVIEW`, `BLOCKED`, `DONE`, `SCAFFOLD`.
@@ -38,6 +39,7 @@
 | R-001 | `ensure_ascii=False` JSON를 cp949 콘솔로 출력 | write 성공 후 `HANDOFF_ERROR: 'cp949' codec…`, 저장은 됐는데 실패 보고 | stdout/stderr UTF-8 재설정 유지 | `test_skill_package` clean-copy (non-ASCII mission) |
 | R-002 | `mkdir(mode=0o700)` | Win + Python>=3.13: 소유자 전용 ACL → 샌드박스 호스트/git이 세션 디렉터리 접근 불가 (icacls로 확인) | mode 인자 없이 생성 | `test_session_dir_created_without_restrictive_mode` (fix 제거 시 FAIL 확인) |
 | R-003 | SKILL.md가 `python`/`py -3`/`python3` 가정 | Codex 샌드박스에서 WindowsApps alias 실행 불가 -> resume 중단 | 실제 인터프리터 경로 지정 안내 (SKILL.md) | Codex 재실행 resume 성공 (수동 증거; 자동 테스트 불가) |
+| R-004 | `git` stdout을 콘솔 코드페이지(cp949)로 디코딩 | 한글 worktree 경로 깨짐 -> `--all-worktrees`가 해당 checkout 누락 | `git()`가 UTF-8로 디코딩 | `test_all_worktrees_lists_sessions_from_every_checkout_read_only` (fix 제거 시 FAIL 확인) |
 
 ## 검증 로그
 
@@ -45,6 +47,7 @@
 |---|---|---|---|---|---|
 | 2026-11-06 | P0-03 | Win11, py3.14.6 | `python scripts/check_upstreams.py` | both up_to_date | — |
 | 2026-11-06 | P1/P2 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 19 tests OK, 1 skipped | 73c1586 |
+| 2026-11-07 | P2-03/DOC-02 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 35 tests OK, 1 skipped; docs-sync test fails when a doc flag is misspelled (mutation checked) | see commit |
 | 2026-11-07 | P1-02 | Win11, py3.14.6 | `python -m unittest discover -s tests` | 26 tests OK, 1 skipped (symlink privilege) | see commit below |
 | 2026-11-06 | P4-08 | Win11, node 26.13, npx skills | `npx skills add D:/…/agent-handoff-manager --skill agent-handoff-manager -a claude-code -a codex -a opencode -a antigravity -a github-copilot --copy -y` | installed `.agents/skills`+`.claude/skills`, identical copies, script runs | scratchpad proj1 |
 | 2026-11-06 | P4-01 | Claude Code 2.1.319 | `claude -p … --model haiku --allowedTools Bash(python:*)…` write+list | session created, id reported | `.handoffs/sessions/20261106T045455Z-61fc48eb5653` |

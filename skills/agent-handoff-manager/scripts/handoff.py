@@ -57,7 +57,7 @@ def safe_dir(path):
 
 def git(root, *args):
     try:
-        p = subprocess.run(['git', '-C', str(root), *args], capture_output=True, text=True, timeout=5, check=False)
+        p = subprocess.run(['git', '-C', str(root), *args], capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=5, check=False)
         return p.stdout.strip() if p.returncode == 0 else None
     except (OSError, subprocess.TimeoutExpired):
         return None
@@ -200,6 +200,60 @@ def write(root, payload, identifier=None, expected_revision=None):
 def list_records(root, archived=False):
     directory = bucket(root, archived)
     return [read_record(p) for p in sorted(directory.iterdir()) if p.is_dir() and not p.is_symlink()] if directory.exists() else []
+
+LIST_STATUS = ('open', 'archived', 'all')
+
+
+def _day(value, name):
+    try:
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', value):
+            raise ValueError
+        return dt.date.fromisoformat(value).isoformat()
+    except (ValueError, TypeError):
+        raise HandoffError(f'{name} must be YYYY-MM-DD') from None
+
+
+def worktree_roots(root):
+    """Checkout roots of this repository (read-only `git worktree list`); just [root] outside Git."""
+    out = git(root, 'worktree', 'list', '--porcelain', '-z')
+    roots = [root]
+    for field in (out or '').split('\0'):
+        if field.startswith('worktree '):
+            path = Path(field[len('worktree '):])
+            if path.is_dir() and path.resolve() not in roots:
+                roots.append(path.resolve())
+    return roots
+
+
+def list_filtered(root, status='open', agent=None, since=None, until=None, all_worktrees=False):
+    if status not in LIST_STATUS:
+        raise HandoffError('status must be one of: ' + ', '.join(LIST_STATUS))
+    if agent is not None and agent not in AGENTS:
+        raise HandoffError('Unknown agent')
+    since = _day(since, 'since') if since else None
+    until = _day(until, 'until') if until else None
+    found = []
+    for checkout in (worktree_roots(root) if all_worktrees else [root]):
+        try:
+            for archived in ((False,) if status == 'open' else (True,) if status == 'archived' else (False, True)):
+                for record in list_records(checkout, archived):
+                    if all_worktrees:
+                        record = dict(record, worktree_root=str(checkout))
+                    found.append(record)
+        except HandoffError as exc:
+            if checkout == root:
+                raise
+            print(f'WARNING: skipped worktree {checkout}: {exc}', file=sys.stderr)
+    out = []
+    for r in found:
+        day = r['created_at'][:10]
+        if agent and r['payload'].get('agent', 'other') != agent:
+            continue
+        if (since and day < since) or (until and day > until):
+            continue
+        out.append(r)
+    return sorted(out, key=lambda r: (r['id'], r.get('worktree_root', '')))
+
 
 def resume(root, identifier):
     record = read_record(locate(root, identifier))
@@ -409,7 +463,13 @@ def main(argv=None):
     commands = parser.add_subparsers(dest='cmd', required=True)
     commands.add_parser('init')
     wr = commands.add_parser('write'); wr.add_argument('--payload', required=True, help='Local JSON payload file; never executes embedded commands'); wr.add_argument('--id'); wr.add_argument('--expected-revision', type=int)
-    ls = commands.add_parser('list'); ls.add_argument('--archived', action='store_true')
+    ls = commands.add_parser('list')
+    ls.add_argument('--archived', action='store_true', help='Alias for --status archived')
+    ls.add_argument('--status', choices=LIST_STATUS)
+    ls.add_argument('--agent', choices=sorted(AGENTS))
+    ls.add_argument('--since', metavar='YYYY-MM-DD', help='created_at (UTC date) >= value')
+    ls.add_argument('--until', metavar='YYYY-MM-DD', help='created_at (UTC date) <= value')
+    ls.add_argument('--all-worktrees', action='store_true', help='Also read the stores of other git worktrees (read-only)')
     re = commands.add_parser('resume'); re.add_argument('id')
     ar = commands.add_parser('archive'); ar.add_argument('id'); ar.add_argument('--confirm', action='store_true')
     rs = commands.add_parser('restore'); rs.add_argument('id'); rs.add_argument('--confirm', action='store_true')
@@ -426,7 +486,10 @@ def main(argv=None):
             if source.is_symlink() or not source.is_file() or source.stat().st_size > 256_000:
                 raise HandoffError('Payload must be a regular non-symlink file <=256 KB')
             result = write(root, json.loads(source.read_text(encoding='utf-8')), args.id, args.expected_revision)
-        elif args.cmd == 'list': result = list_records(root, args.archived)
+        elif args.cmd == 'list':
+            if args.archived and args.status not in (None, 'archived'):
+                raise HandoffError('--archived conflicts with --status')
+            result = list_filtered(root, 'archived' if args.archived else (args.status or 'open'), args.agent, args.since, args.until, args.all_worktrees)
         elif args.cmd == 'resume': result = resume(root, args.id)
         elif args.cmd == 'doctor': result = doctor(root)
         elif args.cmd == 'import-legacy': result = import_legacy(root, args.dry_run)

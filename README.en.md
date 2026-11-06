@@ -1,30 +1,57 @@
-# Unified Handoff Manager — Development starter
+# agent-handoff-manager
 
-**Status: specifications and an upstream watcher, not a completed skill.**
+**Status: experimental local pilot (0.2.0-pilot).** The shared Python core works and was exercised on Windows 11 with several hosts. This is not v1.0; Linux/macOS and the Copilot VS Code Agent and Cloud Agent surfaces are unverified. As of 2026-11-07.
 
-The goal is to combine durable repository-level state inspired by
-[WeirdSky924/agent-handoff-skill](https://github.com/WeirdSky924/agent-handoff-skill)
-with session lifecycle management inspired by
-[aploe/claude-handoff-skill](https://github.com/aploe/claude-handoff-skill),
-for Claude Code, Codex CLI, OpenCode, Antigravity and GitHub Copilot (VS Code agent, Copilot CLI and cloud agent).
+An Agent Skill for handing work over between AI coding agents (Claude Code, Codex CLI, OpenCode, Antigravity, GitHub Copilot). It keeps **verified long-term project state** separate from **per-session handoff records (claims)**. `resume` is read-only: it compares the record with the real git state and runs nothing from the record.
 
-The planned shared commands are `write`, `resume`, `list`, and `archive`.
-The implementation will use a portable Python core, a project-owned canonical state,
-portable session records, and host-specific wrappers.
+Design references: ④ [WeirdSky924/agent-handoff-skill](https://github.com/WeirdSky924/agent-handoff-skill) and ③ [aploe/claude-handoff-skill](https://github.com/aploe/claude-handoff-skill), both MIT; reviewed SHAs are pinned in `upstreams.lock.json`. **No upstream code is vendored** (see `docs/ADR-0003.md`, `THIRD_PARTY_NOTICES.md`). Upstream changes are detected automatically but never adopted without a reviewed PR.
 
-**Upstream changes will be detected automatically, not blindly applied.** A change
-should be reviewed, tested, and approved before release. This avoids silent regressions.
+## Install (paths verified on Windows 11)
 
-Read `WORK_ORDER.md`, `AGENTS.md`, `INTENTS.md` and `ARCHITECTURE.md` before coding.
-See `docs/USER_GUIDE.md` for the proposed user-facing commands. These commands are not
-operational yet. `scripts/check_upstreams.py` and its tests are functional starter tools.
+```bash
+gh skill preview rch4com/agent-handoff-manager agent-handoff-manager
+gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent github-copilot --scope project   # needs gh 2.90+ (tested: 2.103.3)
+npx skills add rch4com/agent-handoff-manager --skill agent-handoff-manager -a claude-code -a codex --copy
+```
 
-Both sources advertise the MIT license. Preserve source copyright and license notices
-for any code redistributed from them. A new public project also needs its own LICENSE,
-release pipeline, compatibility testing and publication decision.
+`--agent` values `claude-code`, `codex`, `opencode`, `antigravity` and `github-copilot` were each installed and checked. The core (`scripts/handoff.py`) is shipped inside the skill folder (`docs/ADR-0002.md`); only Python 3.10+ is required. Nothing is executed at install time. Do not install the same skill into both `.agents/skills` and `.claude/skills` for Copilot.
 
-## Installation / distribution plan
+## Use
 
-Suggested public repository: `YOUR_GITHUB_ID/agent-handoff-manager` with the standard Agent Skill source at `skills/agent-handoff-manager/SKILL.md`.
+The commands in `docs/USER_GUIDE.md` match the real CLI:
 
-GitHub CLI `gh skill` (2.90.0+, preview) and `npx skills` are planned public-install entry points, but the Python core and real install E2E tests remain TODO. GitHub Copilot's native Agent Skills support covers VS Code Agent Mode, Copilot CLI and Copilot cloud agent; the latter must have the skill/resources in the target repository or environment. **No public repository or marketplace has been created.** See `docs/INSTALLATION_AND_SHARING.md`, `docs/COPILOT_SETUP.md` and `docs/MARKETPLACES.md`.
+```bash
+python <skill-dir>/scripts/handoff.py --repo . write --payload payload.json
+python <skill-dir>/scripts/handoff.py --repo . list [--status all] [--agent codex] [--since D] [--until D] [--all-worktrees]
+python <skill-dir>/scripts/handoff.py --repo . resume latest
+python <skill-dir>/scripts/handoff.py --repo . archive ID --confirm   # restore ID --confirm
+python <skill-dir>/scripts/handoff.py --repo . doctor
+python <skill-dir>/scripts/handoff.py --repo . import-legacy --dry-run
+```
+
+## Verified so far (Windows 11)
+
+| Host | Discovered | Core ran | Verified behavior |
+|---|---|---|---|
+| Claude Code 2.1.319 | yes | yes | write, list |
+| Codex CLI 0.165.0 | yes | yes | resume (needs a real python path) |
+| OpenCode 1.19.4 | yes | yes | resume (with explicit `-m`) |
+| Antigravity agy 1.5.0 | yes | yes | resume |
+| Copilot CLI 1.0.105 | yes | yes | resume |
+| Copilot VS Code Agent / Cloud Agent | no | no | not tested |
+
+Evidence: `PROJECT_TRACKER.md` and `docs/COMPATIBILITY.md`. Compatibility will not be declared for v1.0 before end-to-end runs on all five hosts and the three Copilot surfaces.
+
+## Not implemented yet
+
+`--depth`, `archive --dry-run`, durable-state (④) change proposals, upstream impact-analysis PR automation, Claude/Copilot marketplace manifests, release tags/checksums, Linux verification. See `docs/RELEASE_GATES.md`.
+
+## Develop
+
+```bash
+python -m unittest discover -s tests -v
+python scripts/validate_distribution.py
+python scripts/check_upstreams.py
+```
+
+Licensed under MIT (`LICENSE`).
