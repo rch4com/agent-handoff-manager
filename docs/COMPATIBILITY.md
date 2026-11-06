@@ -10,7 +10,7 @@
 | Copilot CLI 1.0.105 | 검증 | 검증 | resume 검증, write 미검증 | 부분 검증 |
 | Copilot Cloud Agent | 미검증 | 미검증 | 미검증 | 미검증 (push 승인 필요) |
 
-증거: `PROJECT_TRACKER.md` 검증 로그. Linux/macOS는 전 표면 미검증. 위 표의 "검증"은 로컬 경로에서 `npx skills --copy`로 설치한 사본 기준이며 `gh skill`·공개 원격 설치는 미검증.
+증거: `PROJECT_TRACKER.md` 검증 로그. **Linux**: 코어 단위 테스트 83개를 Ubuntu 24.04(WSL2, Python 3.12.3)와 GitHub Actions ubuntu-latest(3.10/3.12)에서 통과(symlink 포함). **Linux에서 호스트 에이전트(Claude/Codex/OpenCode/Antigravity/Copilot) 실행은 전부 미검증**, macOS는 전 항목 미검증. 위 표의 "검증"은 로컬 경로에서 `npx skills --copy`로 설치한 사본 기준이며 `gh skill`·공개 원격 설치는 미검증.
 
 ## 배포 도구 (2026-11-06 문서 확인; 실제 설치는 미실행)
 
