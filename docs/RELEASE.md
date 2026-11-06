@@ -4,22 +4,22 @@
 
 - Public GitHub repo: `rch4com/agent-handoff-manager`
 - `skills/agent-handoff-manager/SKILL.md` 및 해당 경로 내 모든 실행 리소스
-- 작동하는 Python 공통 코어(배포 방식: vendored/PyPI 등 ADR에서 확정)
+- 작동하는 Python 공통 코어: 스킬 폴더 안에 포함 (ADR-0002)
 - Windows/Linux 설치·업데이트·제거 및 롤백 정책
 - Claude Code, Codex, OpenCode, Antigravity, GitHub Copilot (VS Code/CLI/Cloud) 호환성 보고서
 - MIT 등 최종 LICENSE + 원본 ④/③ 저작권·재배포 고지
 
 ## Preflight (모두 실제 통과해야 함)
 
-- [ ] `LICENSE.template` → 실제 `LICENSE`, upstream notices 실제 원본과 대조
-- [ ] `upstreams.lock.json` ④/③ 채택 SHA 고정 및 ADR 작성
-- [ ] 스킬 설치 직후 core 호출이 성공; SKILL.md만 설치되고 실행 코어가 없으면 FAIL
-- [ ] 5호스트 7표면과 Windows/Linux 테스트 결과 공개
+- [x] 실제 `LICENSE`(MIT, rch4com), upstream notices는 원본 LICENSE blob과 대조해 `THIRD_PARTY_NOTICES.md`에 기록
+- [x] `upstreams.lock.json` ④/③ 채택 SHA 고정 및 ADR 작성 (ADR-0003)
+- [x] 스킬 설치 직후 core 호출이 성공 (gh skill/npx skills 설치본 실행, clean-copy 테스트)
+- [ ] 5호스트 7표면과 Windows/Linux 테스트 결과 공개 (Windows 5호스트 중 일부만; `docs/COMPATIBILITY.md`)
 - [ ] write→list→resume→archive→restore, 충돌/비밀정보/마이그레이션 테스트 통과
-- [ ] `gh skill preview`/`gh skill install` 실제 Public 원격 테스트
-- [ ] `npx skills add` 실제 Public 원격 테스트 (대체 경로)
-- [ ] 프로젝트 스킬 설치 시 AGENTS.md 등 기존 설정 무손상
-- [ ] 버전 pin/업데이트/제거/롤백 E2E 통과
+- [x] `gh skill preview`/`gh skill install` 실제 Public 원격 테스트 (gh 2.103.3, Windows 11)
+- [x] `npx skills add` 실제 Public 원격 테스트 (대체 경로)
+- [x] 프로젝트 스킬 설치 시 AGENTS.md 등 기존 설정 무손상 (SHA-256 동일 확인)
+- [ ] 버전 pin/업데이트/제거/롤백 E2E 통과 (pin 건너뜀과 제거 후 재설치 데이터 보존만 검증; 새 태그로의 update는 미검증)
 - [ ] 보안 리뷰/비밀 스캔 및 Copilot Cloud 실행 권한 검증
 - [ ] 사용자 설치/사용 문서의 모든 명령이 실제 동작
 

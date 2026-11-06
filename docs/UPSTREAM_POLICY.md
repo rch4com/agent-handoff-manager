@@ -23,7 +23,7 @@
 
 ## Version pinning
 
-`upstreams.lock.json`의 `adopted_sha`는 검토 후 제품에 실제 채택한 40자 commit SHA입니다. `null`이면 아직 기준선을 채택하지 않은 상태이며 출시 차단 조건입니다. 모니터링이 발견한 `latest_sha`는 보고서/이슈에만 기록하고 lock을 저절로 갱신하지 않습니다.
+`upstreams.lock.json`의 `adopted_sha`는 검토 후 제품에 실제 채택한 40자 commit SHA입니다. `null`이면 아직 기준선을 채택하지 않은 상태이며 출시 차단 조건입니다. (2026-11-06 두 원본 모두 검토 후 pin 완료, 코드는 가져오지 않음: ADR-0003.) 모니터링이 발견한 `latest_sha`는 보고서/이슈에만 기록하고 lock을 저절로 갱신하지 않습니다.
 
 변경 확인:
 
