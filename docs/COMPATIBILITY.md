@@ -26,7 +26,7 @@
 
 - Windows 11 / PowerShell 7 및 필요 시 Windows PowerShell 5.1
 - Ubuntu 24.04/26.04 / Bash
-- Python 3.10+; 실제 core 검증은 3.10, 3.12 그리고 최신 지원 버전
+- Python 3.10+; CI에서 3.10, 3.12, 3.13, 3.14를 Windows와 Linux 모두 통과(2026-11-07, 8개 job). 호스트 E2E는 Windows의 Python 3.14에서만 실행
 - 한국어·일본어 문자와 공백 포함 경로, 비영어 프로젝트
 - Dirty Git, worktree, 서로 다른 clone, Cloud Agent, 권한 없는 경로
 
