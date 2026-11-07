@@ -22,7 +22,8 @@ State as of 2026-11-07. `[x]` = evidence exists in `PROJECT_TRACKER.md`; `[ ]` =
 - [ ] Real process-kill and power-loss durability, network filesystems (simulated interruptions are tested: `docs/RECOVERY_PROTOCOL.md`)
 - [ ] Distributed coordination across worktrees/machines beyond OS locks and revision checks (explicitly out of scope for v1.0 per INTENTS.md; must be documented, not implied)
 - [ ] Secret screening beyond patterns (entropy/PII) or an explicit accepted-risk decision; manual privacy review
-- [ ] Release tag, checksums/signature policy, GitHub Release artifact, tag protection, `gh skill update` receiving a new tagged version
+- [x] Release tag `v0.2.0-pilot`, GitHub pre-release with zip + SHA256SUMS (reproducible across Windows/Linux)
+- [ ] Signature/attestation policy, tag protection ruleset (owner setting), `gh skill update` receiving a *new* tagged version (needs a second release)
 - [ ] Clean-machine onboarding run by someone other than the author (new user -> install -> write/resume -> upgrade -> uninstall)
 - [ ] ④ durable-state parsing/approval workflow (P3 only reads and proposes), ④ compaction vs ③ archive on a real ④ project
 - [ ] Documents produced by the real ③ plugin imported (fixtures follow its verbatim bootstrap/template structure but content is invented)

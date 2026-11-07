@@ -30,7 +30,7 @@ Experimental. Host support is exactly what `docs/COMPATIBILITY.md` marks as veri
 - Removed `LICENSE.template` (real `LICENSE` exists).
 
 ### Known limits
-See `docs/RELEASE_GATES.md`: not all hosts verified for write, no Linux/macOS host runs, no VS Code / Cloud Agent runs, no release tag or checksums yet.
+See `docs/RELEASE_GATES.md`: agent-composed payload verified only on Claude Code and Codex, no Linux/macOS host runs, no VS Code / Cloud Agent runs, no signatures. Released as pre-release tag `v0.2.0-pilot` with a SHA-256 checksum (commit `041af49`).
 
 ## [0.1.0-pilot] - 2026-11-06
 
