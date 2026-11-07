@@ -14,6 +14,8 @@ gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent git
 npx skills add rch4com/agent-handoff-manager --skill agent-handoff-manager -a claude-code -a codex --copy
 ```
 
+고정 설치는 `--pin v0.2.0-pilot`(pre-release, zip + `SHA256SUMS`: [Releases](https://github.com/rch4com/agent-handoff-manager/releases/tag/v0.2.0-pilot)).
+
 `--agent`는 `claude-code`, `codex`, `opencode`, `antigravity`, `github-copilot`로 설치를 확인했습니다. 설치 결과는 `.agents/skills/` 또는 `.claude/skills/`이며 코어(`scripts/handoff.py`)가 스킬 폴더 안에 함께 복사됩니다 ([ADR-0002](docs/ADR-0002.md)). 설치 후 Python 3.10+만 있으면 됩니다. 설치 중 코드는 실행되지 않습니다.
 
 > 같은 스킬을 `.agents/skills`와 `.claude/skills`에 모두 설치하면 Copilot이 둘 다 읽을 수 있으니 한 곳만 쓰세요.

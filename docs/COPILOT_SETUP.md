@@ -46,3 +46,7 @@
 | Copilot Cloud Agent | 미검증 | 미검증 | 미검증 | 미검증 | BLOCKED: 시험 저장소(`rch4com/ahm-cloud-agent-test`)에 스킬을 커밋했으나 이슈를 Copilot에 할당할 수 없었음(`Copilot agent is not enabled in this repository`). 계정/저장소에서 Copilot coding agent 활성화 필요 |
 
 Copilot CLI 헤드리스 실행은 `--allow-tool='shell'`이 필요했고(파이썬 경로 패턴 매칭 실패), 중첩 에이전트 권한 정책상 사용자가 직접 실행한 결과입니다. 상세 로그: `PROJECT_TRACKER.md`.
+
+## VS Code Agent Mode: why it is still untested
+
+VS Code 1.145.1 has `code chat --mode agent "<prompt>"`, but it only opens the chat view in the GUI: there is no headless run and no way to capture the agent's output or approve tool calls from a script. A real test therefore needs a person: install the skill into a throw-away repo (`gh skill install ... --agent github-copilot --scope project`), open it in VS Code, run the agent with the prompt from `docs/USER_GUIDE.md`, then check the result with the core (`list`, `doctor`) and git, not with the chat text. Record the VS Code and Copilot extension versions in `PROJECT_TRACKER.md`.

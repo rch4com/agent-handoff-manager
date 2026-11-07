@@ -14,6 +14,8 @@ gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent git
 npx skills add rch4com/agent-handoff-manager --skill agent-handoff-manager -a claude-code -a codex --copy
 ```
 
+Pin with `--pin v0.2.0-pilot` (pre-release with zip + `SHA256SUMS`: [Releases](https://github.com/rch4com/agent-handoff-manager/releases/tag/v0.2.0-pilot)).
+
 `--agent` values `claude-code`, `codex`, `opencode`, `antigravity` and `github-copilot` were each installed and checked. The core (`scripts/handoff.py`) is shipped inside the skill folder (`docs/ADR-0002.md`); only Python 3.10+ is required. Nothing is executed at install time. Do not install the same skill into both `.agents/skills` and `.claude/skills` for Copilot.
 
 ### Optional: plugin route (do not combine with a skill install)
