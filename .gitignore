@@ -7,3 +7,4 @@ venv/
 upstream-report.md
 *.log
 # Do not blanket-ignore .agent-handoff/ or .handoffs/ in *user projects*: they are intended for opt-in Git sharing.
+dist/
