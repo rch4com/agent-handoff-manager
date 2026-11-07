@@ -45,6 +45,7 @@ def build(root: Path, out: Path) -> tuple[Path, Path]:
         for arcname, path in sorted(entries):
             info = zipfile.ZipInfo(arcname, FIXED_TIME)
             info.compress_type = zipfile.ZIP_STORED  # stored: zlib output differs between platforms, stored bytes do not
+            info.create_system = 3  # ZipInfo defaults to 0 on Windows, 3 elsewhere
             info.external_attr = 0o644 << 16
             data = path.read_bytes().replace(b"\r\n", b"\n")  # repo is LF (INDENTS.md); normalize checkouts with autocrlf
             z.writestr(info, data)
