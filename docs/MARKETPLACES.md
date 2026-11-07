@@ -42,3 +42,7 @@ Claude Code의 플러그인 marketplace 형식은 `.claude-plugin/marketplace.js
 - [ ] 설치한 skill이 실제 core를 실행함 (단순 문서 발견만으로는 FAIL)
 - [ ] 두 업스트림 및 본 프로젝트 LICENSE notices 확인
 - [ ] 외부 공개 문서와 설치 명령이 테스트 로그로 검증됨
+
+## 공식 디렉터리 제출 준비
+
+제출은 하지 않았습니다. 두 디렉터리의 요구사항과 이 프로젝트의 값/격차(특히 `vally lint` 미실행)는 [MARKETPLACE_SUBMISSION.md](MARKETPLACE_SUBMISSION.md)에 정리했습니다.
