@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ['3.10', '3.12']
+        python-version: ['3.10', '3.12', '3.13', '3.14']
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -23,3 +23,6 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Validate distribution scaffold
         run: python scripts/validate_distribution.py
+      - name: Parse-check the host smoke script (does not run any agent)
+        shell: pwsh
+        run: '$null = [scriptblock]::Create((Get-Content scripts/host_smoke.ps1 -Raw)); "host_smoke.ps1 parses"'
