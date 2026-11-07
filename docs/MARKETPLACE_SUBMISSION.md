@@ -36,6 +36,20 @@ Status 2026-11-07: **not submitted.** Submitting is a public, outward-facing act
 - **Done instead (reading the public gate source `eng/external-plugin-quality-gates.mjs` / `eng/agent-plugin-schema.mjs`, no code from it was run):** `tests/test_agent_plugin_manifest.py` re-implements the documented manifest rules in stdlib code and our root `plugin.json` passes: `$schema` equals the schema URL; `name` 1-64 chars matching the pattern; non-empty `version`/`description`; `author` only `name`/`email`/`url`; only allowed top-level fields (`$schema name version description author homepage repository license keywords extensions`). The same test checks SKILL.md frontmatter (name equals folder and is lowercase-hyphen, description 1-1024 chars, license) and that SKILL.md has no dangling `scripts/...` references. This does not replace the real gate.
 - **What the gate does with skills (from its source):** it reads skill directories from a `skills` field of plugin.json, but `skills` is **not** an allowed top-level field in Agent Plugins v1.0.0, so for our plugin it falls back to linting the whole plugin root. What `vally` reports for a whole repository root (our docs, tests, fixtures) is unknown and is the main risk. If it complains, the likely fix is a smaller dedicated plugin directory, which means a new tag and new SHA values in the table above.
 
+### Review of `@microsoft/vally-cli@0.21.0` (metadata and source read on 2026-11-07; run still pending)
+
+- Downloaded with `npm pack --ignore-scripts` into an isolated scratch folder and read, not executed. MIT, `bin: vally`, Node >= 22.15. The CLI package itself has no `preinstall/install/postinstall` script. README: `vally lint` = "fast static checks (no execution)".
+- **Telemetry is ON by default** (Azure Application Insights, hard-coded connection string in `dist/usage-telemetry/config.js`). Opt-out env vars that the source honors: `DO_NOT_TRACK=1` or `VALLY_TELEMETRY_OPTOUT=1`. Always set one of them.
+- Installed into an empty folder with `npm install --ignore-scripts` (181 packages). In that dependency tree exactly one package has an install-time script: `koffi` (`node ./cnoke.cjs ... --prebuild`, a native FFI library); it was skipped by `--ignore-scripts`. Whether `lint` needs it is unknown.
+- Running it was denied by the permission policy ("code from external") and not retried. A human can run it with:
+
+```bash
+DO_NOT_TRACK=1 VALLY_TELEMETRY_OPTOUT=1 node "<scratch>/vally-run/node_modules/@microsoft/vally-cli/dist/index.js" lint "<repo>/skills/agent-handoff-manager"
+DO_NOT_TRACK=1 VALLY_TELEMETRY_OPTOUT=1 node "<scratch>/vally-run/node_modules/@microsoft/vally-cli/dist/index.js" lint "<repo>"     # what the intake gate falls back to for our plugin
+```
+
+  (`<scratch>` is the session scratchpad; recreate with `npm install @microsoft/vally-cli@0.21.0 --ignore-scripts` in an empty folder.) Record the output in `PROJECT_TRACKER.md` and fix findings before any submission.
+
 ## 3. Decision needed from the owner
 
 1. Submit to one, both, or neither directory.
