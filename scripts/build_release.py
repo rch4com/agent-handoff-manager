@@ -41,10 +41,10 @@ def build(root: Path, out: Path) -> tuple[Path, Path]:
         entries.append((name, root / name))
     out.mkdir(parents=True, exist_ok=True)
     archive = out / f"{SKILL}-{core_version(root)}.zip"
-    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+    with zipfile.ZipFile(archive, "w", zipfile.ZIP_STORED) as z:
         for arcname, path in sorted(entries):
             info = zipfile.ZipInfo(arcname, FIXED_TIME)
-            info.compress_type = zipfile.ZIP_DEFLATED
+            info.compress_type = zipfile.ZIP_STORED  # stored: zlib output differs between platforms, stored bytes do not
             info.external_attr = 0o644 << 16
             data = path.read_bytes().replace(b"\r\n", b"\n")  # repo is LF (INDENTS.md); normalize checkouts with autocrlf
             z.writestr(info, data)
