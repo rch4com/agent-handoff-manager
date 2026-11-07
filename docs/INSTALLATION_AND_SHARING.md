@@ -33,6 +33,15 @@ gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent cod
 
 업데이트·제거(실측): `--pin`으로 설치한 스킬은 `gh skill update agent-handoff-manager`가 `pinned to <sha> (skipped)`로 건너뜁니다. `gh skill`에는 uninstall 명령이 없어 스킬 폴더(`.agents/skills/agent-handoff-manager/`)를 직접 지우는 것이 제거입니다. 제거·재설치(이전 커밋 -> 최신 커밋) 후에도 `.handoffs/` 데이터는 그대로이며 새 버전이 이전 버전이 쓴 세션을 읽고 `doctor`가 `ok: true`였습니다. 핀 없는 설치가 새 커밋을 받는 `update` 경로는 새 릴리스가 생길 때 시험합니다. `gh skill publish --dry-run`은 통과했습니다(태그 보호 규칙 없음 경고만).
 
+### 릴리스 태그로 고정 (pre-release)
+
+```bash
+gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent github-copilot --scope project --pin v0.2.0-pilot
+npx skills add rch4com/agent-handoff-manager@v0.2.0-pilot --skill agent-handoff-manager
+```
+
+GitHub Releases의 `agent-handoff-manager-0.2.0-pilot.zip`(스킬 폴더 + `LICENSE` + `THIRD_PARTY_NOTICES.md`)은 `SHA256SUMS`로 검증합니다. 같은 태그에서 `python scripts/build_release.py`로 직접 빌드하면 **Windows와 Linux 모두 같은 바이트**(같은 SHA-256)가 나옵니다(저장 방식 zip, 고정 타임스탬프). 체크섬은 서명이 아니므로 변조 방지는 GitHub 계정/태그 신뢰에 의존합니다. 태그 보호 규칙은 아직 설정하지 않았습니다.
+
 ## 3. 대안 설치 B — `npx skills` (검증: node 26.13)
 
 ```bash

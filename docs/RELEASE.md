@@ -23,6 +23,10 @@
 - [ ] 보안 리뷰/비밀 스캔 및 Copilot Cloud 실행 권한 검증
 - [ ] 사용자 설치/사용 문서의 모든 명령이 실제 동작
 
+## Artifact and checksum (implemented)
+
+`python scripts/build_release.py --out dist` builds `agent-handoff-manager-<core VERSION>.zip` (skill folder + LICENSE + THIRD_PARTY_NOTICES.md) and `SHA256SUMS`. Bytes are identical on Windows and Linux (verified: same SHA-256 from Windows 11 and Ubuntu 24.04/WSL2). Signatures and provenance attestations are not implemented.
+
 ## Release versioning
 
 - `v0.1.0`: internal beta / 실 사용자 설치 검증 전; README에서 알림
