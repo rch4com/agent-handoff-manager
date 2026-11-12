@@ -8,7 +8,7 @@
 | Antigravity agy 1.5.0 | 검증 (`.agents/skills`) | 검증 | resume 검증(미존재 주장 파일 지적), write는 core 호출만 검증(payload 외부 준비) | 부분 검증 |
 | Copilot VS Code Agent 1.145.1 | 미검증 | 미검증 | 미검증 | 미검증 |
 | Copilot CLI 1.0.105 | 검증 | 검증 | resume 검증, write는 core 호출만 검증(payload는 외부 준비, 에이전트가 직접 작성한 것은 아님) | 부분 검증 |
-| Copilot Cloud Agent | 미검증 | 미검증 | 미검증 | 미검증 (push 승인 필요) |
+| Copilot Cloud Agent | 미검증 | 미검증 | 미검증 | 미검증 (소유자 결정으로 건너뜀 2026-11-12; 유료 플랜의 coding agent 필요) |
 
 증거: `PROJECT_TRACKER.md` 검증 로그. **Linux**: 코어 단위 테스트 83개를 Ubuntu 24.04(WSL2, Python 3.12.3)와 GitHub Actions ubuntu-latest(3.10/3.12)에서 통과(symlink 포함). **Linux에서 호스트 에이전트(Claude/Codex/OpenCode/Antigravity/Copilot) 실행은 전부 미검증**, macOS는 전 항목 미검증. 위 표의 "검증"은 로컬 경로에서 `npx skills --copy`로 설치한 사본 기준이며 `gh skill`·공개 원격 설치는 미검증.
 

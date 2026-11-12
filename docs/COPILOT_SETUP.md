@@ -1,6 +1,6 @@
 # GitHub Copilot 지원 계획 및 테스트 매뉴얼
 
-> 상태(2026-11-07): Copilot CLI는 설치·발견·resume을 실제로 확인했고, VS Code Agent와 Cloud Agent는 미검증입니다. 코어는 스킬 폴더에 포함되어 있어 스킬 폴더 전체가 설치되면 실행됩니다 (ADR-0002).
+> 상태(2026-11-07): Copilot CLI는 설치·발견·resume을 실제로 확인했고, VS Code Agent는 미검증, Cloud Agent는 소유자 결정으로 시험을 건너뛰어 미검증입니다(2026-11-12). 코어는 스킬 폴더에 포함되어 있어 스킬 폴더 전체가 설치되면 실행됩니다 (ADR-0002).
 
 ## A. Copilot for VS Code — Agent Mode
 
@@ -43,7 +43,7 @@
 |---|---|---|---|---|---|
 | VS Code Agent Mode (1.145.1 설치됨) | 미검증 | 미검증 | 미검증 | 미검증 | TODO (대화형 조작 필요) |
 | Copilot CLI 1.0.105 (Windows 11) | `copilot skill list`로 확인 (gh skill/npx 설치본, 플러그인 설치본) | `copilot -p` 실행으로 확인 (resume) | Codex가 쓴 세션을 resume으로 읽음 / write는 미검증 | `differences`와 경고 보고 확인 | 부분 검증 |
-| Copilot Cloud Agent | 미검증 | 미검증 | 미검증 | 미검증 | BLOCKED: 시험 저장소(`rch4com/ahm-cloud-agent-test`)에 스킬을 커밋했으나 이슈를 Copilot에 할당할 수 없었음(`Copilot agent is not enabled in this repository`). 계정/저장소에서 Copilot coding agent 활성화 필요 |
+| Copilot Cloud Agent | 미검증 | 미검증 | 미검증 | 미검증 | SKIPPED (소유자 결정, 2026-11-12): Copilot coding agent는 유료 Copilot 플랜이 필요하고 이 계정에서 활성화되지 않음(`Copilot agent is not enabled in this repository`). 시험하지 않았으므로 Cloud Agent 동작은 아무것도 검증되지 않음 |
 
 Copilot CLI 헤드리스 실행은 `--allow-tool='shell'`이 필요했고(파이썬 경로 패턴 매칭 실패), 중첩 에이전트 권한 정책상 사용자가 직접 실행한 결과입니다. 상세 로그: `PROJECT_TRACKER.md`.
 
