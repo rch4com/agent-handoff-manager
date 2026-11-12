@@ -7,7 +7,7 @@
 - 사용자가 VS Code와 GitHub Copilot에 로그인하고 Agent 모드를 실행할 수 있는지 확인.
 - 대상 프로젝트에 `.github/skills/agent-handoff-manager/SKILL.md`를 설치하거나, 공통 `.agents/skills/`에 설치.
 - `name`은 부모 폴더와 일치하는 `agent-handoff-manager`여야 함. YAML frontmatter의 `description`은 언제 사용할지 명확히 서술.
-- 자연어 예시: `agent-handoff-manager 스킬로 프로젝트 상태를 읽고 최신 세션을 resume --verify-only로 점검해 주세요.`
+- 자연어 예시: `agent-handoff-manager 스킬로 프로젝트 상태를 읽고 최신 세션을 resume latest로 점검해 주세요.` (`resume`은 항상 읽기 전용이며 `--verify-only` 옵션은 없음)
 - 최종판에서는 에이전트가 실제 Python 코어를 호출했는지, 어떤 파일을 읽고 수정했는지 검증.
 - VS Code Agent Skills: https://code.visualstudio.com/docs/agent-customization/agent-skills
 

@@ -43,6 +43,13 @@ class DocsMatchCliTests(unittest.TestCase):
                 if fake in line and "python $H" in line:
                     self.fail(f"USER_GUIDE shows unimplemented {fake}: {line}")
 
+    def test_host_setup_prompts_do_not_use_unimplemented_flags(self):
+        # COPILOT_SETUP once told users to ask for `resume --verify-only`, a flag that never existed
+        for rel in ("docs/COPILOT_SETUP.md", "docs/INSTALLATION_AND_SHARING.md"):
+            text = (ROOT / rel).read_text(encoding="utf-8")
+            for fake in ("resume --verify-only", "init --layout"):
+                self.assertNotIn(fake, text, f"{rel} suggests unimplemented '{fake}'")
+
 
 if __name__ == "__main__":
     unittest.main()
