@@ -22,13 +22,14 @@
 | P4-05 | Copilot VS Code Agent | TODO | VS Code 1.145.1 present; not run | 미지정 | Needs interactive Agent Mode; manual by owner |
 | P4-06 | Copilot CLI | IN_PROGRESS | Copilot CLI 1.0.105 / Win11: skill loaded; `resume latest` (user-run, `--allow-tool=shell`); core invoked for `write` with narrow `--allow-tool='shell(python)'` (payload prepared externally) and verified by the core; `shell(<full python path>)` pattern does not match Windows `& 'path'` invocations -> use plain `python` | 미지정 | write via Copilot; Linux |
 | P4-07 | Copilot Cloud Agent | SKIPPED | SKIPPED (owner decision 2026-11-12): not run. The Copilot coding agent needs a paid Copilot plan and was not enabled for rch4com; the owner chose to skip this surface. Nothing about Cloud Agent behavior is verified. Earlier attempt: issue assignment failed with `Copilot agent is not enabled in this repository`; the temp test repo rch4com/ahm-cloud-agent-test was deleted by the owner on 2026-11-12 | 미지정 | Re-open only if the owner gets a plan with the coding agent: commit the skill to a target repo, assign an issue to Copilot, judge the PR with core `list`/`doctor` |
-| P4-08 | gh skill / npx skills 배포 | NEEDS_REVIEW | gh 2.103.3 (upgraded via winget): `gh skill publish --dry-run` OK; `gh skill preview` + `install --agent github-copilot|claude-code|codex|opencode|antigravity --scope project` from public rch4com/agent-handoff-manager@137799a OK (.agents/skills, .claude/skills); installed copy ran init/write/list/doctor; `npx skills add rch4com/agent-handoff-manager` OK. Not yet: `--pin` tag, update, uninstall, Linux | 미지정 | Tag release + pin/update/uninstall test; Linux run |
+| P4-08 | gh skill / npx skills 배포 | NEEDS_REVIEW | 기존 로그 기준: 공개 원격 설치, 코어 실행, `v0.2.0-pilot` tag pin(gh/npx), pinned update 건너뜀, 제거·재설치 데이터 보존 검증. 2026-11-07 release/설치 로그 참조 | 미지정 | 새 버전 수신 update, 외부 사용자 온보딩, Linux/macOS 원격 설치 |
 | P5-01 | 업스트림 변경 **감지 초안** | NEEDS_REVIEW | `check_upstreams.py` live run both up_to_date; workflow_dispatch run 42254700976 and first scheduled (cron) run 42594014605 (2026-11-09) success, both up_to_date; unit tests | 미지정 | Issue creation path only exercised by unit logic (no real upstream change yet) |
 | P5-02 | 변경 영향분석/PR 흐름 | NEEDS_REVIEW | impact analysis in monitor report (compare metadata only; license/executable/skill-contract/template/docs risk; truncation + API error = high), 4 tests, verified on real aploe range 44f9b29..b6ad33e without touching the lock; `.github/pull_request_template.md` adoption checklist | 미지정 | Issue-creation path on a real change; automatic draft PR is intentionally not implemented (human opens it) |
 | P5-03 | 공개 배포 및 외부 시험 | IN_PROGRESS | Public repo + pre-release v0.2.0-pilot (tag, zip, SHA256SUMS) published with owner approval and re-verified from download/pin installs. Not done: external-user (non-author) run, signatures | 미지정 | 작성자 아닌 사용자의 clean-machine 온보딩 시험 |
 | P5-04 | Claude/Copilot Marketplace | IN_PROGRESS | Claude: manifests validated (`claude plugin validate .`), remote add/install/core run/uninstall/remove PASS. Copilot: separate format (`plugin.json` + `.github/plugin/marketplace.json`), remote `marketplace add`/`browse`/`install` PASS, installed core runs; agent headless run pending user. Not submitted to any official marketplace | 미지정 | Copilot plugin headless write/resume (user-run); VS Code plugin; official listing needs owner approval |
-| DOC-02 | README/EN/USER_GUIDE 실행 결과 동기화 | NEEDS_REVIEW | tests/test_docs_sync.py: 문서의 모든 서브커맨드/플래그가 실제 CLI에 존재 | 미지정 | INSTALLATION_AND_SHARING/COPILOT_SETUP 재작성 |
-| DOC-01 | 설치/배포/ Copilot 문서 | NEEDS_REVIEW | INSTALLATION_AND_SHARING / COPILOT_SETUP / MARKETPLACES rewritten from executed commands (2026-11-07) | 미지정 | 미검증 항목(update/uninstall, Linux, VS Code, Cloud) 시험 후 갱신 |
+| DOC-02 | README/EN/USER_GUIDE 실행 결과 동기화 | NEEDS_REVIEW | tests/test_docs_sync.py: 문서의 모든 서브커맨드/플래그가 실제 CLI에 존재; 2026-11-13 AUDIT-02에서 오래된 미구현 목록과 새 안전 동작 정리 | 미지정 | 후속 변경 시 CLI·가이드 동기화 유지 |
+| DOC-01 | 설치/배포/ Copilot 문서 | NEEDS_REVIEW | 기존 실행 로그와 설치/호환성/Copilot 요약 동기화(2026-11-13); 이번에 원격 설치·호스트 시험은 재실행하지 않음 | 미지정 | 새 버전 update, Linux/macOS 원격 온보딩, VS Code 시험; Cloud는 소유자 재개 요청 시 |
+| AUDIT-02 | 감사 지적 5건 개선 | DONE | 2026-11-13: 코어 4건 회귀 수정 + 상태 문서 동기화; 113 tests, 108 PASS/5 SKIP; 배포 구조·PS 구문·diff 검사 PASS; 독립 읽기 전용 리뷰의 자격증명 우회 지적 수정 및 재검토 완료. 아래 AUDIT-02 증거. 기준 HEAD `3d68015`; 작업 트리 변경, 미커밋 | Codex coordinator | 변경분의 Windows/Linux CI 확인 후 별도 릴리스 검토 |
 **다음 1개 작업 (2026-11-12):** 소유자 조작 대기: VS Code Agent(GUI) 시험, `vally lint` 실행, 공식 marketplace 제출 여부. Cloud Agent는 소유자 결정으로 건너뜀(SKIPPED), 시험 저장소는 삭제됨. agy 스크립트 경로는 PASS.
 
 상태: `TODO`, `IN_PROGRESS`, `NEEDS_REVIEW`, `BLOCKED`, `SKIPPED`(소유자 결정으로 시험하지 않음, 검증 아님), `DONE`, `SCAFFOLD`.
@@ -44,6 +45,10 @@
 | R-005 | `git status`로 dirty 계산 | 코어 자신의 `.write.lock`/`session.json` 때문에 깨끗한 트리도 항상 dirty=True | `.handoffs/` 제외 pathspec (`observe_git`) | `test_own_store_files_do_not_make_clean_tree_dirty` (fix 제거 시 FAIL 확인) |
 | R-006 | `--all-worktrees`가 root와 git이 알려준 경로를 문자열 비교 | GitHub Actions windows-latest(8.3 짧은 임시 경로)에서 같은 checkout이 두 번 나열됨 (로컬에서는 Windows 짧은 경로를 직접 만들어 재현) | root를 `resolve()`한 뒤 비교 | `test_all_worktrees_does_not_duplicate_when_root_given_as_windows_short_path` (fix 제거 시 FAIL 확인) |
 | R-007 | `host_smoke.ps1`의 `-Target`을 `string[]`+ValidateSet로 선언 | `pwsh -File`은 `a,b`를 한 문자열로 넘겨 안내한 명령이 실패 (직접 실행해 발견) | 쉼표 문자열로 받아 직접 분리·검증 | 쉼표 목록 `-DryRun`/실행 PASS; 잘못된 대상은 명확한 오류 |
+| R-008 | archive에서 `latest`를 경로명으로 사용 | 종료 0이지만 archive/latest가 만들어져 doctor 오류 | resume만 별칭 허용; 이동과 write --id는 실제 ID | `test_latest_is_rejected_for_moves_without_changing_records` |
+| R-009 | JSON 직렬화된 문자열만 검사 / 중첩 dict의 키·값만 따로 검사 | 따옴표 JSON·개행 Bearer 우회; 리뷰에서 구조화된 password 필드 우회 확인 | 원문 재귀 검사와 직렬화 검사 모두 유지 | `test_quoted_credentials_and_multiline_tokens_are_not_saved`, `test_structured_credential_assignments_in_nested_objects_are_not_saved` (각 수정 전 FAIL 확인) |
+| R-010 | 필수 레코드 필드 검증 생략 | payload 누락인데 doctor 정상, resume KeyError | 공통 reader에서 envelope·payload 검증; 원본 보존 | `test_invalid_records_are_reported_and_never_rewritten`; pre-depth v1 호환 테스트 |
+| R-011 | dirty bool의 전후 차이만 경고 | 수정 내용이 달라져도 dirty→dirty이면 warnings 비어 있음 | 현재 dirty이면 내용 동일성 미검증 경고 | `test_dirty_tree_always_warns_even_when_dirty_was_saved` |
 
 ## 검증 로그
 
@@ -100,7 +105,21 @@
 | 호스트 | Skill 발견 | Core 설치/호출 | E2E | 버전/OS/증거 |
 |---|---|---|---|---|
 | Copilot VS Code Agent | TODO | TODO | TODO | — |
-| Copilot CLI | PASS | PASS (resume) | write 미검증 | v1.0.105, Win11, gh-installed 사본 |
+| Copilot CLI | PASS | PASS (resume, 외부 준비 payload의 write) | 직접 작성 payload write 미검증 | v1.0.105, Win11, 2026-11-07 write/host_smoke 로그 |
 | Copilot Cloud Agent | SKIPPED | SKIPPED | SKIPPED | owner decision 2026-11-12 (paid plan required); not verified |
 | `gh skill` Public 원격 설치 | PASS (5 agent ids) | PASS (init/write/list/doctor) | TODO | gh 2.103.3, Win11, repo @137799a |
-| `npx skills` Public 원격 설치 | PASS (claude-code, codex) | TODO | TODO | Win11, node 26.13, @137799a |
+| `npx skills` Public 원격 설치 | PASS (claude-code, codex) | 원격 npx 설치본의 개별 코어 실행 로그 미분리 | 전체 호스트 왕복 미검증 | Win11, node 26.13, 2026-11-06 설치 및 2026-11-07 태그 설치 로그; 설치 성공을 코어 검증으로 승격하지 않음 |
+
+## AUDIT-02 로컬 수정·검토 증거 (2026-11-13 UTC)
+
+- 2026-11-15 커밋 전 재검증: Windows Python 3.14.6, 전체 113 tests OK (5 symlink 권한 SKIP, 23.254s), `validate_distribution.py` PASS, `git diff --check` PASS. 소유자의 "커밋하고 개발 진행해" 지시에 따라 감사 수정분을 먼저 커밋.
+
+- 범위: 코어, 회귀 테스트, SKILL.md/CLI 도움말, 한국어·영어 README, 사용·설치·호환성·Copilot·스키마·보안·릴리스 게이트 문서, CHANGELOG 및 이 tracker. 기존 데이터/호스트 설정/브랜치/외부 서비스 변경 없음.
+- 기준: `main`, HEAD `3d68015d67a8c81b9ded5bde8cbfc7f97f1a2b2e`. Commit: 미커밋 작업 트리; 검토 대상은 `git diff`와 새 `tests/test_audit_regressions.py`.
+- 환경: Windows, Python 3.14.6; 실제 인터프리터 `C:/Users/rchco/AppData/Local/Python/pythoncore-3.14-64/python.exe` 사용(Store alias는 실행 불가).
+- TDD: `-m unittest discover -s tests -p test_audit_regressions.py -v` — 기존 결함을 수정 전 재현(실패/예외); 첫 수정 후 5 tests PASS. 독립 리뷰에서 중첩 객체 password 우회 발견 → 6번째 회귀 테스트 FAIL 확인 → 원문+직렬화 병행 검사 후 6 tests PASS.
+- 최종(08:22 UTC): 위 실제 인터프리터로 `-m unittest discover -s tests -v` — 113 tests, 108 PASS, 5 SKIP, exit 0 (21.227s). SKIP은 심볼릭 링크 생성 권한 부족. 동시 쓰기·중단 복구·비ASCII 경로·별도 설치 사본 lifecycle·문서 CLI 검사 포함.
+- `scripts/validate_distribution.py` — PASS, exit 0. `[scriptblock]::Create((Get-Content scripts/host_smoke.ps1 -Raw))` — 구문 PASS(호스트 실행 아님). `git diff --check` — PASS.
+- Review: 별도 읽기 전용 reviewer가 변경 diff·호출부·레거시 import·v1 호환성·회귀 테스트 검토. 구조화된 password 필드 지적을 수정한 뒤, fake credential 4건 거부와 안전 payload 허용을 독립 확인; 남은 차단 지적 없음. 완료 자기 보고만 사용하지 않고 coordinator가 최종 전체 테스트를 실행·확인함.
+- 한계: Linux/다른 Python 버전/실제 호스트/원격 설치는 이번 변경으로 재시험하지 않음. 기존 검증 로그는 과거 증거이며 이번 변경을 검증한 것으로 승격하지 않음. 비밀 탐지는 패턴 기반이고, 강화된 reader가 이전에 허용했던 민감 payload를 거부하면 수동 검토가 필요함. 자동 데이터 수정/마이그레이션 없음.
+- 다음 1개 작업: 변경분을 Windows/Linux CI에서 검증. 기존 `v0.2.0-pilot` 태그·설치본은 이번 수정 미포함이며 새 릴리스는 별도 검토 대상.

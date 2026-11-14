@@ -1,6 +1,6 @@
 # GitHub Copilot 지원 계획 및 테스트 매뉴얼
 
-> 상태(2026-11-07): Copilot CLI는 설치·발견·resume을 실제로 확인했고, VS Code Agent는 미검증, Cloud Agent는 소유자 결정으로 시험을 건너뛰어 미검증입니다(2026-11-12). 코어는 스킬 폴더에 포함되어 있어 스킬 폴더 전체가 설치되면 실행됩니다 (ADR-0002).
+> 기존 실행 로그 기준(문서 정리 2026-11-13): Copilot CLI는 설치·발견·resume과 외부 준비 payload의 write 코어 호출을 확인했습니다. 에이전트가 직접 payload를 작성하는 write와 VS Code Agent는 미검증, Cloud Agent는 소유자 결정으로 시험을 건너뛰어 미검증입니다(2026-11-12). 코어는 스킬 폴더에 포함됩니다 (ADR-0002).
 
 ## A. Copilot for VS Code — Agent Mode
 
@@ -37,15 +37,15 @@
 - 설치 대상 저장소의 `AGENTS.md`를 임의로 덮어쓰지 말 것. 기존 `copilot-instructions.md`도 자동 덮어쓰기 금지.
 - Copilot instruction 참고: https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions
 
-## E2E 필수 3개 표면 (2026-11-07 상태)
+## E2E 필수 3개 표면 (기존 실행 로그 기준)
 
 | 표면 | Skill 발견 | Core 실행 | 세션 왕복 | 환경 차이 경고 | 결과 |
 |---|---|---|---|---|---|
 | VS Code Agent Mode (1.145.1 설치됨) | 미검증 | 미검증 | 미검증 | 미검증 | TODO (대화형 조작 필요) |
-| Copilot CLI 1.0.105 (Windows 11) | `copilot skill list`로 확인 (gh skill/npx 설치본, 플러그인 설치본) | `copilot -p` 실행으로 확인 (resume) | Codex가 쓴 세션을 resume으로 읽음 / write는 미검증 | `differences`와 경고 보고 확인 | 부분 검증 |
+| Copilot CLI 1.0.105 (Windows 11) | `copilot skill list`로 확인 (gh skill/npx 설치본, 플러그인 설치본) | `copilot -p`의 resume 및 좁은 권한의 write 코어 호출 확인 | Codex 세션 resume / 외부 준비 payload의 write 검증, 직접 작성 payload 미검증 | `differences`와 경고 보고 확인 | 부분 검증 |
 | Copilot Cloud Agent | 미검증 | 미검증 | 미검증 | 미검증 | SKIPPED (소유자 결정, 2026-11-12): Copilot coding agent는 유료 Copilot 플랜이 필요하고 이 계정에서 활성화되지 않음(`Copilot agent is not enabled in this repository`). 시험하지 않았으므로 Cloud Agent 동작은 아무것도 검증되지 않음 |
 
-Copilot CLI 헤드리스 실행은 `--allow-tool='shell'`이 필요했고(파이썬 경로 패턴 매칭 실패), 중첩 에이전트 권한 정책상 사용자가 직접 실행한 결과입니다. 상세 로그: `PROJECT_TRACKER.md`.
+Copilot CLI의 좁은 권한 write는 `--allow-tool='shell(python)'`과 프롬프트의 일반 `python ...` 호출로 통과했습니다. 전체 Python 경로 패턴은 Windows의 `& 'path'` 호출과 매칭되지 않았습니다. `shell` 전체 허용이 필수인 것은 아닙니다. payload는 외부에서 준비했으며 실제 결과와 실행 주체는 `PROJECT_TRACKER.md` 로그를 따르세요.
 
 ## VS Code Agent Mode: why it is still untested
 

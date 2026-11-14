@@ -1,6 +1,6 @@
 # agent-handoff-manager
 
-> 상태: **실험적 로컬 파일럿 (0.2.0-pilot)**. 공통 Python 코어는 동작하고 Windows 11에서 일부 호스트로 검증했습니다. v1.0이 아니며 Linux/macOS, Copilot VS Code Agent·Cloud Agent는 미검증입니다. 기준일 2026-11-07.
+> 상태: **실험적 로컬 파일럿 (0.2.0-pilot)**. 공통 Python 코어는 Windows/Linux에서 테스트됐고 Windows 11에서 일부 호스트로 검증했습니다. Linux/macOS 호스트 E2E와 Copilot VS Code Agent는 미검증이며, Cloud Agent는 소유자 결정으로 시험을 건너뛰었습니다. 문서 정리 기준일 2026-11-13; 기존 실행 증거는 `PROJECT_TRACKER.md` 참조.
 
 서로 다른 AI 코딩 에이전트(Claude Code, Codex CLI, OpenCode, Antigravity, GitHub Copilot) 사이에서 작업을 이어받기 위한 Agent Skill 입니다. 프로젝트의 **검증된 장기 상태**와 **세션별 인계 기록(주장)** 을 분리하고, `resume`은 읽기 전용으로 실제 git 상태와 비교만 합니다.
 
@@ -53,15 +53,15 @@ python <skill-dir>/scripts/handoff.py --repo . import-legacy --dry-run
 | Claude Code 2.1.319 | O | O | write, list, resume |
 | Codex CLI 0.165.0 | O | O | write, resume (실제 python 경로 필요) |
 | OpenCode 1.19.4 | O | O | resume, write(core 호출만; payload는 외부 준비) (`-m` 모델 지정 시) |
-| Antigravity agy 1.5.0 | O | O | resume, write(core 호출만; payload는 외부 준비) |
+| Antigravity agy 1.5.0 / 1.5.6 | O | O | resume, write(core 호출만; payload는 외부 준비) |
 | Copilot CLI 1.0.105 | O | O | resume, write(core 호출만; payload는 외부 준비) |
 | Copilot VS Code Agent / Cloud Agent | 미검증 | 미검증 | — |
 
 증거: [PROJECT_TRACKER.md](PROJECT_TRACKER.md) 검증 로그, [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md). 지원 선언(v1.0)은 5개 호스트 + Copilot 3개 표면 E2E 이후입니다.
 
-## 아직 없는 것
+## 남은 검증과 구현
 
-장기 상태(④) 변경 후보 제안(P3), upstream 영향분석 PR 자동화(P5), Claude/Copilot marketplace manifest, 릴리스 태그/체크섬, Linux 검증. 상세: [docs/RELEASE_GATES.md](docs/RELEASE_GATES.md).
+변경 후보 제안, upstream 영향분석 보고서, Claude/Copilot marketplace manifest, 파일럿 릴리스 태그·체크섬은 있습니다. 남은 항목은 장기 상태 파싱·승인 흐름, 실제 upstream 변경 시 이슈 갱신, Linux/macOS 호스트 E2E, Copilot VS Code Agent, 외부 사용자의 새 환경 온보딩·새 버전 업데이트, 서명·태그 보호입니다. Cloud Agent 시험은 소유자 결정으로 건너뛰었으며 검증된 지원이 아닙니다. 상세: [docs/RELEASE_GATES.md](docs/RELEASE_GATES.md).
 
 ## 개발
 

@@ -1,4 +1,4 @@
-# Compatibility Matrix — 5 hosts / 7 surfaces (PLANNED; NOT VALIDATED)
+# Compatibility Matrix — 5 hosts / 7 surfaces (partially verified pilot)
 
 | 호스트/표면 (버전, Win11) | 프로젝트 스킬 발견 | 코어 실행 | write/list/resume | 상태 |
 |---|---|---|---|---|
@@ -12,12 +12,12 @@
 
 증거: `PROJECT_TRACKER.md` 검증 로그. **Linux**: 코어 단위 테스트 83개를 Ubuntu 24.04(WSL2, Python 3.12.3)와 GitHub Actions ubuntu-latest(3.10/3.12)에서 통과(symlink 포함). **Linux에서 호스트 에이전트(Claude/Codex/OpenCode/Antigravity/Copilot) 실행은 전부 미검증**, macOS는 전 항목 미검증. 초기 확인은 로컬 경로에서 `npx skills --copy`로 설치한 사본, 이후 write/host_smoke 확인은 공개 저장소에서 `gh skill install --pin`으로 설치한 사본 기준.
 
-## 배포 도구 (2026-11-06 문서 확인; 실제 설치는 미실행)
+## 배포 도구 (기존 실행 로그 기준; 문서 정리 2026-11-13)
 
 | 배포 수단 | 역할 | 원칙 |
 |---|---|---|
-| `gh skill` (GitHub CLI ≥2.90.0; 이 환경 gh 2.87.3에는 `skill` 명령 없음 → 미검증) | 5개 호스트에 스킬 설치 / 업데이트 / 배포 | 원본 preview, tag pin, release smoke |
-| `npx skills` (Node 22.20+) | Agent Skills 설치/갱신 | `-a` agent id 실제 도움말 확인 |
+| `gh skill` (검증: GitHub CLI 2.103.3) | 5개 agent id의 공개 원격 설치·코어 호출, 태그 pin, pinned update 건너뜀 검증 | 새 버전 수신 update·외부 사용자 온보딩 미검증 |
+| `npx skills` (검증: Node 26.13) | 공개 원격 설치 및 v0.2.0-pilot 태그 설치 검증 | Linux/macOS 원격 온보딩 미검증 |
 | GitHub Releases | Core binary/script, 문서, checksum | SKILL과 core가 같은 버전이어야 함 |
 | Claude Code Marketplace | 선택적 플러그인 배포 | 별도 manifest / 테스트 |
 | Copilot Marketplace | 선택적 플러그인 배포 | Claude와 다른 manifest / 테스트 |
@@ -49,4 +49,4 @@ pwsh -File scripts/host_smoke.ps1 -DryRun    # 설치 + 코어 확인만 (에이
 Copilot CLI 헤드리스 팁: `--allow-tool='shell(python)'`처럼 **실행 파일 이름만** 지정하고 프롬프트에서 `python ...`을 쓰도록 하세요. 전체 경로 패턴(`shell(C:\...\python.exe)`)은 Windows에서 `& 'C:\...'` 형태로 실행되어 매칭되지 않았습니다.
 OpenCode 헤드리스 팁: 환경변수 `OPENCODE_PERMISSION='{"bash":{"python *":"allow","*":"deny"},"edit":"deny"}'`로 python 실행만 허용하고 `opencode run -m <모델> ...`을 실행하세요. Antigravity(agy 1.5.0)는 `--settings '<JSON>'`(세션 전용, 사용자 전역 allow 목록을 **대체**)로 `permissions.allow`/`deny`를 지정할 수 있고, `command(regex:^python(?:\s.*)?$)`와 읽기 전용 명령만 허용하는 설정으로 write 호출이 통과했습니다(`command(python*)`만 주면 agy가 자체적으로 자동 거부).
 
-`host_smoke.ps1` 기본 동작: copilot/opencode는 **좁은 권한 모드**(에이전트는 `python ...`만 실행 가능, payload는 스크립트가 준비), claude/codex/agy는 에이전트가 payload를 직접 작성. `-ComposePayload`를 주면 copilot/opencode도 직접 작성(넓은 권한 필요). 2026-11-07 Windows 11에서 `-Target claude,codex`와 `-Target opencode,copilot` 모두 `PASS`(코어 판정)였습니다.
+`host_smoke.ps1` 기본 동작: copilot/opencode/agy는 **좁은 권한 모드**(에이전트는 `python ...`만 실행 가능, payload는 스크립트가 준비), claude/codex는 에이전트가 payload를 직접 작성. `-ComposePayload`를 주면 copilot/opencode/agy도 직접 작성(넓은 권한 필요). 2026-11-07 Windows 11에서 `-Target claude,codex`와 `-Target opencode,copilot` 모두 `PASS`(코어 판정)였고, agy는 2026-11-12 소유자 실행으로 PASS였습니다.

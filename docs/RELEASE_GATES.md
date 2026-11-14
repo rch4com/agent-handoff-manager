@@ -1,6 +1,6 @@
 # Release gates (pilot vs stable)
 
-State as of 2026-11-07. `[x]` = evidence exists in `PROJECT_TRACKER.md`; `[ ]` = not done or not verified.
+Historical evidence reconciled on 2026-11-13. `[x]` = evidence exists in `PROJECT_TRACKER.md`; `[ ]` = not done or not verified. Local audit fixes are recorded separately and are not in the existing v0.2.0-pilot release tag.
 
 ## Pilot readiness
 
@@ -12,13 +12,13 @@ State as of 2026-11-07. `[x]` = evidence exists in `PROJECT_TRACKER.md`; `[ ]` =
 - [x] Upstream SHAs pinned after license/source review; impact analysis report; PR adoption checklist
 - [x] Self-contained skill package (core inside the skill folder); gh skill + npx skills remote install verified (Windows 11)
 - [x] Existing AGENTS.md / CLAUDE.md / copilot-instructions.md survive install byte-identical; `inject-rules` adds one marked block idempotently and `--remove` restores original bytes (tests + real remote install)
-- [x] Unit tests on Windows + Linux in CI (Python 3.10, 3.12)
+- [x] Unit tests on Windows + Linux in CI (Python 3.10, 3.12, 3.13, 3.14; historical evidence)
 - [x] Host smoke on Windows 11: Claude Code, Codex, OpenCode, Antigravity, Copilot CLI (see `docs/COMPATIBILITY.md` for exact scope)
 
 ## Stable v1.0 blockers
 
 - [ ] write + resume verified on **every** host (core-invocation write verified on all five hosts' CLIs; agent-composed payload verified only on Claude Code and Codex) and host runs on Linux/macOS (core tests already pass on Linux)
-- [ ] Copilot VS Code Agent Mode and Copilot Cloud Agent end-to-end (not tested)
+- [ ] Copilot VS Code Agent Mode end-to-end (not tested); Cloud Agent test skipped by owner on 2026-11-12, not verified support
 - [ ] Real process-kill and power-loss durability, network filesystems (simulated interruptions are tested: `docs/RECOVERY_PROTOCOL.md`)
 - [ ] Distributed coordination across worktrees/machines beyond OS locks and revision checks (explicitly out of scope for v1.0 per INTENTS.md; must be documented, not implied)
 - [ ] Secret screening beyond patterns (entropy/PII) or an explicit accepted-risk decision; manual privacy review

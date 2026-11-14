@@ -1,6 +1,6 @@
 # 사용자 사용 설명서 (로컬 파일럿 기준)
 
-> 이 문서의 명령과 출력은 2026-11-07 `skills/agent-handoff-manager/scripts/handoff.py` 0.2.0-pilot 실제 실행 결과에 맞춘 것입니다. 존재하지 않는 `handoff ...` 단축 명령이나 `--verify-only`, `--dry-run`(archive 등)은 **아직 없습니다**. 설치: [INSTALLATION_AND_SHARING.md](INSTALLATION_AND_SHARING.md). 호스트별 검증 상태: [COMPATIBILITY.md](COMPATIBILITY.md).
+> 이 문서는 `skills/agent-handoff-manager/scripts/handoff.py` 0.2.0-pilot 기준이며, 2026-11-13 로컬 감사 수정 사항을 포함합니다(기존 릴리스 태그에는 미포함). `handoff ...` 단축 명령과 `--verify-only`는 없으며 `resume`은 항상 읽기 전용입니다. `archive`/`restore`는 `--dry-run`을 지원합니다. 설치: [INSTALLATION_AND_SHARING.md](INSTALLATION_AND_SHARING.md). 호스트별 검증 상태: [COMPATIBILITY.md](COMPATIBILITY.md).
 
 ## 사전 조건
 
@@ -28,6 +28,7 @@ python $H upstream status              # 오프라인: 이 버전이 기준으�
 
 - 모든 정상 출력은 JSON, 오류는 stderr의 `HANDOFF_ERROR: ...`(종료 코드 2). `doctor`는 문제가 있으면 종료 코드 1.
 - `archive`/`restore`는 `--confirm`(적용) 또는 `--dry-run`(계획만 출력) 중 하나가 필수이며 둘은 함께 쓸 수 없습니다. 둘 다 없으면 `HANDOFF_ERROR: Explicit --confirm required (or --dry-run to preview)`로 아무 것도 바꾸지 않습니다.
+- `latest`는 `resume`에만 사용하세요. `archive`/`restore`와 `write --id`는 실제 세션 ID가 필요하며 `latest`는 거부합니다. `list` 출력에서 ID를 확인하세요.
 - `write`는 대화를 읽지 않습니다. 에이전트가 payload를 만들어 넘깁니다 ([SCHEMA_SPEC.md](SCHEMA_SPEC.md), 예: `examples/session_payload.json`). 기존 세션 갱신은 `--id ID --expected-revision N`.
 
 ### write --depth
@@ -79,9 +80,13 @@ python $H --repo . list --all-worktrees         # 같은 저장소의 다른 git
 
 관련 테스트 실행은 에이전트가 사용자 권한 아래 직접 해야 합니다. 시험에서 Antigravity와 OpenCode는 payload가 주장한 파일이 없음을 스스로 짚어냈고, 이제 코어도 `file_checks`/`warnings`로 같은 사실을 제공합니다.
 
+현재 트리에 미커밋 변경이 있으면 항상 경고합니다. 저장 당시에도 `dirty: true`였으면 `differences`가 비어 있을 수 있지만, 미커밋 파일 내용이 같다는 뜻은 아닙니다. 이 코어는 그 내용의 동일성을 검증하지 않습니다.
+
 ### doctor
 
 읽기 전용 점검입니다(아무 것도 삭제/수리하지 않음). 반환: `ok`, `issues`, `info`(`python`/`python_ok`, `git_available`, `platform`, `active_sessions`, `archived_sessions`, `legacy_unimported`). 감지: 미초기화, 남은 `.write.lock`, 누락된 디렉터리, 읽을 수 없거나 지원하지 않는 `schema_version`의 레코드(비정상 종료로 비어 있는 세션 폴더 포함), 상태/위치 불일치(중단된 archive 가능성), 중복 ID, 세션 안팎의 `.pending-*`·불필요한 파일, symlink. `ok: false`면 종료 코드 1.
+
+공통 읽기 단계에서 필수 레코드 필드·자료형·UTC 시각·payload 형식과 자격증명 패턴도 검사합니다. 잘못된 기록은 `doctor`가 문제로 보고하고 다른 명령은 `HANDOFF_ERROR`로 거부하며, 원본을 자동 수정하지 않습니다. 선택 필드 `depth`가 없는 이전 v1 기록과 알 수 없는 최상위 확장 필드는 계속 읽습니다.
 
 ### inject-rules (선택, 명시적으로만)
 
@@ -122,4 +127,4 @@ python $H --repo . list --all-worktrees         # 같은 저장소의 다른 git
 
 ## 아직 없는 것
 
-프로젝트 장기 상태(④) 변경 후보 제안(P3), 네이티브 slash command. GitHub Copilot의 VS Code Agent / Cloud Agent 표면은 미검증.
+장기 상태의 구조적 파싱·승인 흐름과 네이티브 slash command. 변경 후보 제안은 이미 `write`에 있습니다. GitHub Copilot VS Code Agent는 미검증이며 Cloud Agent 시험은 소유자 결정으로 건너뛰었습니다.

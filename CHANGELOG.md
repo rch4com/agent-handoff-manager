@@ -2,6 +2,15 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/), SemVer. Pre-1.0 versions may break the CLI or schema; schema changes are listed explicitly. The session schema is `schema_version: 1` throughout.
 
+## [Unreleased]
+
+### Fixed
+- Reject `latest` for archive/restore (including dry-run) and `write --id`; only `resume` accepts the alias. Prevents moving a session into an invalid `latest` directory.
+- Screen original payload strings before JSON escaping; detect quoted credential assignments and multiline Bearer tokens.
+- Validate required persisted envelope fields, Git observation types, UTC timestamps and payloads in the shared reader. `doctor` reports invalid records; commands fail without rewriting them. Pre-depth v1 records and unknown envelope extensions remain readable.
+- Always warn about current uncommitted changes, including when the saved Git observation was already dirty; uncommitted content equality is not verified.
+- Reconcile README (Korean/English), user/install/security/schema/compatibility/Copilot documentation and tracker summaries with recorded implementation and verification evidence. No new host or remote-install claims.
+
 ## [0.2.0-pilot] - 2026-11-07
 
 Experimental. Host support is exactly what `docs/COMPATIBILITY.md` marks as verified (Windows 11).

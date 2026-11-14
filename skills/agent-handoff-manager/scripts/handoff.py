@@ -20,7 +20,7 @@ ID_RE = re.compile(r'^\d{8}T\d{6}Z-[0-9a-f]{12}$')
 AGENTS = {'claude-code', 'codex', 'opencode', 'antigravity', 'copilot', 'other'}
 STATUS = {'open', 'blocked', 'done'}
 VALIDATION = {'passed', 'failed', 'not_run', 'unknown'}
-KEY_RE = re.compile(r'(?:xox[abprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{30,}|[sr]k_(?:live|test)_[A-Za-z0-9]{10,}|glpat-[A-Za-z0-9_-]{10,}|npm_[A-Za-z0-9]{30,}|eyJ[A-Za-z0-9_-]{5,}\.eyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]+|[A-Za-z][A-Za-z0-9+.-]*://[^\s/:@]+:[^\s/@]{4,}@|AccountKey=[A-Za-z0-9+/=]{20,}|SG\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}|gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|(?i:bearer)\s+[A-Za-z0-9._~-]{16,}|(?i:(?:api[_-]?key|access[_-]?token|secret|password))\s*[:=]\s*["\']?\S{8,})')
+KEY_RE = re.compile(r'(?:xox[abprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{30,}|[sr]k_(?:live|test)_[A-Za-z0-9]{10,}|glpat-[A-Za-z0-9_-]{10,}|npm_[A-Za-z0-9]{30,}|eyJ[A-Za-z0-9_-]{5,}\.eyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]+|[A-Za-z][A-Za-z0-9+.-]*://[^\s/:@]+:[^\s/@]{4,}@|AccountKey=[A-Za-z0-9+/=]{20,}|SG\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}|gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|(?i:bearer)\s+[A-Za-z0-9._~-]{16,}|(?i:(?:api[_-]?key|access[_-]?token|secret|password))["\']?\s*[:=]\s*["\']?\S{8,})')
 FIELDS = {'mission', 'acceptance_criteria', 'completed', 'in_progress', 'blocked', 'changed_files', 'decisions', 'failed_attempts', 'validation', 'next_action', 'agent', 'worktree', 'branch', 'head', 'failure_records'}
 
 FAILURE_KEYS = {'approach', 'why_failed', 'evidence', 'regression_test', 'resolved'}
@@ -74,6 +74,17 @@ def git(root, *args):
     except (OSError, subprocess.TimeoutExpired):
         return None
 
+def contains_credential(value):
+    """Scan original strings: JSON escaping hides quotes and whitespace from the detector."""
+    if isinstance(value, str):
+        return bool(KEY_RE.search(value))
+    if isinstance(value, dict):
+        return any(contains_credential(k) or contains_credential(v) for k, v in value.items())
+    if isinstance(value, list):
+        return any(contains_credential(v) for v in value)
+    return False
+
+
 def sanitize_payload(raw):
     if not isinstance(raw, dict):
         raise HandoffError('Payload must be a JSON object')
@@ -84,7 +95,7 @@ def sanitize_payload(raw):
         if not isinstance(raw.get(key), str) or not raw[key].strip():
             raise HandoffError(f'{key} requires nonempty text')
     agent = raw.get('agent', 'other')
-    if agent not in AGENTS:
+    if not isinstance(agent, str) or agent not in AGENTS:
         raise HandoffError('Unknown agent')
     for key in ('acceptance_criteria', 'completed', 'in_progress', 'blocked', 'decisions', 'failed_attempts'):
         value = raw.get(key, [])
@@ -101,17 +112,17 @@ def sanitize_payload(raw):
         if not p or p.startswith(('/', '\\')) or '\\' in p or any(part == '..' for part in p.split('/')) or re.match(r'^[A-Za-z]:', p):
             raise HandoffError('changed_files paths must be relative and non-traversing')
     validations = raw.get('validation', [])
-    if not isinstance(validations, list) or any(not isinstance(v, dict) or v.get('result') not in VALIDATION or not isinstance(v.get('command'), str) or not isinstance(v.get('evidence', ''), str) for v in validations):
+    if not isinstance(validations, list) or any(not isinstance(v, dict) or not isinstance(v.get('result'), str) or v['result'] not in VALIDATION or not isinstance(v.get('command'), str) or not isinstance(v.get('evidence', ''), str) for v in validations):
         raise HandoffError('validation must contain command and a supported result')
     failures = raw.get('failure_records', [])
     if not isinstance(failures, list) or any(
             not isinstance(f, dict) or set(f) - FAILURE_KEYS
             or any(not isinstance(f.get(k), str) or not f[k].strip() for k in ('approach', 'why_failed', 'evidence'))
-            or f.get('regression_test') not in REGRESSION or not isinstance(f.get('resolved'), bool) for f in failures):
+            or not isinstance(f.get('regression_test'), str) or f['regression_test'] not in REGRESSION or not isinstance(f.get('resolved'), bool) for f in failures):
         raise HandoffError('failure_records need approach, why_failed, evidence (text), regression_test ('
                            + '/'.join(sorted(REGRESSION)) + ') and resolved (bool)')
     serialized = json.dumps(raw, ensure_ascii=False)
-    if KEY_RE.search(serialized):
+    if contains_credential(raw) or KEY_RE.search(serialized):
         raise HandoffError('Potential credential detected; remove it before saving')
     if len(serialized.encode('utf-8')) > 256_000:
         raise HandoffError('Payload exceeds 256 KB')
@@ -174,12 +185,31 @@ def read_record(path):
         data = json.loads(file.read_text(encoding='utf-8'))
     except (OSError, ValueError) as e:
         raise HandoffError(f'Unreadable session record: {path.name}: {e}') from e
-    if data.get('schema_version') != 1 or data.get('id') != path.name or not ID_RE.fullmatch(path.name) or not isinstance(data.get('revision'), int):
-        raise HandoffError(f'Invalid session record: {path.name}')
+    try:
+        if (not isinstance(data, dict) or type(data.get('schema_version')) is not int or data['schema_version'] != 1
+                or data.get('id') != path.name or not ID_RE.fullmatch(path.name)
+                or type(data.get('revision')) is not int or data['revision'] < 1
+                or data.get('status') not in ('open', 'archived') or data.get('claims_are_unverified') is not True):
+            raise ValueError
+        for key in ('writer_version', 'project_id', 'created_at', 'updated_at'):
+            if not isinstance(data.get(key), str) or not data[key].strip():
+                raise ValueError
+        for key in ('created_at', 'updated_at'):
+            stamp = dt.datetime.fromisoformat(data[key].replace('Z', '+00:00'))
+            if stamp.utcoffset() != dt.timedelta(0):
+                raise ValueError
+        observed = data.get('git_observation')
+        if (not isinstance(observed, dict) or not {'branch', 'head', 'dirty'} <= observed.keys()
+                or any(observed[k] is not None and not isinstance(observed[k], str) for k in ('branch', 'head'))
+                or (observed['dirty'] is not None and type(observed['dirty']) is not bool)):
+            raise ValueError
+        sanitize_payload(data.get('payload'))
+    except (ValueError, HandoffError):
+        raise HandoffError(f'Invalid session record: {path.name}') from None
     return data
 
 def locate(root, identifier, archived=None):
-    if identifier == 'latest':
+    if identifier == 'latest' and archived is None:
         candidates = sorted((p for p in bucket(root).iterdir() if p.is_dir() and not p.is_symlink() and ID_RE.fullmatch(p.name)), reverse=True) if bucket(root).exists() else []
         if not candidates:
             raise HandoffError('No active sessions')
@@ -401,6 +431,8 @@ def resume(root, identifier):
     claims = [{'command': v['command'], 'claimed_result': v['result'], 'evidence': v.get('evidence', ''), 'verified': False}
               for v in payload.get('validation', [])]
     warnings = [f"{k} differs: saved {d['saved']!r}, current {d['current']!r}" for k, d in differences.items()]
+    if observed['dirty']:
+        warnings.append('Worktree has uncommitted changes; equality with saved uncommitted contents is not verified')
     if relation == 'ahead':
         warnings.append(f'HEAD moved: {ahead} commit(s) since the handoff was saved')
     elif relation == 'diverged_or_unknown':
@@ -777,10 +809,10 @@ def main(argv=None):
     ls.add_argument('--since', metavar='YYYY-MM-DD', help='created_at (UTC date) >= value')
     ls.add_argument('--until', metavar='YYYY-MM-DD', help='created_at (UTC date) <= value')
     ls.add_argument('--all-worktrees', action='store_true', help='Also read the stores of other git worktrees (read-only)')
-    re = commands.add_parser('resume'); re.add_argument('id')
+    re = commands.add_parser('resume'); re.add_argument('id', help='Session ID or latest active session')
     for name in ('archive', 'restore'):
         tp = commands.add_parser(name)
-        tp.add_argument('id')
+        tp.add_argument('id', help='Concrete session ID from list (latest is only supported by resume)')
         mode = tp.add_mutually_exclusive_group()
         mode.add_argument('--confirm', action='store_true', help='Apply the move')
         mode.add_argument('--dry-run', action='store_true', help='Show the planned move; change nothing')

@@ -1,6 +1,6 @@
 # agent-handoff-manager
 
-**Status: experimental local pilot (0.2.0-pilot).** The shared Python core works and was exercised on Windows 11 with several hosts. This is not v1.0; Linux/macOS and the Copilot VS Code Agent and Cloud Agent surfaces are unverified. As of 2026-11-07.
+**Status: experimental local pilot (0.2.0-pilot).** The shared Python core has tests on Windows/Linux and several host runs on Windows 11. Linux/macOS host E2E and Copilot VS Code Agent remain unverified; Cloud Agent testing was skipped by the owner. Documentation reconciled on 2026-11-13; historical execution evidence is in `PROJECT_TRACKER.md`.
 
 An Agent Skill for handing work over between AI coding agents (Claude Code, Codex CLI, OpenCode, Antigravity, GitHub Copilot). It keeps **verified long-term project state** separate from **per-session handoff records (claims)**. `resume` is read-only: it compares the record with the real git state and runs nothing from the record.
 
@@ -51,15 +51,15 @@ python <skill-dir>/scripts/handoff.py --repo . import-legacy --dry-run
 | Claude Code 2.1.319 | yes | yes | write, list, resume |
 | Codex CLI 0.165.0 | yes | yes | write, resume (needs a real python path) |
 | OpenCode 1.19.4 | yes | yes | resume, write (core invocation only; payload prepared externally; with explicit `-m`) |
-| Antigravity agy 1.5.0 | yes | yes | resume, write (core invocation only; payload prepared externally) |
+| Antigravity agy 1.5.0 / 1.5.6 | yes | yes | resume, write (core invocation only; payload prepared externally) |
 | Copilot CLI 1.0.105 | yes | yes | resume, write (core invocation only; payload prepared externally) |
 | Copilot VS Code Agent / Cloud Agent | no | no | not tested |
 
 Evidence: `PROJECT_TRACKER.md` and `docs/COMPATIBILITY.md`. Compatibility will not be declared for v1.0 before end-to-end runs on all five hosts and the three Copilot surfaces.
 
-## Not implemented yet
+## Remaining work and verification
 
-Durable-state (④) change proposals, upstream impact-analysis PR automation, Claude/Copilot marketplace manifests, release tags/checksums, Linux verification. See `docs/RELEASE_GATES.md`.
+Change proposals, upstream impact reports, Claude/Copilot marketplace manifests, and a pilot release tag/checksum already exist. Remaining work: durable-state parsing/approval, issue updates for a real upstream change, Linux/macOS host E2E, Copilot VS Code Agent, external-user clean-machine onboarding and new-version updates, signatures and tag protection. Cloud Agent testing was skipped by the owner and is not verified support. See `docs/RELEASE_GATES.md`.
 
 ## Develop
 

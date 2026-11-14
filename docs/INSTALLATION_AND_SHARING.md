@@ -1,6 +1,6 @@
 # 설치·공개 배포 매뉴얼 — agent-handoff-manager
 
-> 상태: **실험적 파일럿 (0.2.0-pilot)**. 아래 명령은 2026-11-07 Windows 11에서 실제로 실행해 결과를 확인한 것입니다(근거: `PROJECT_TRACKER.md` 검증 로그). 표시가 없는 항목은 미검증입니다. 릴리스 태그는 아직 없습니다(`--pin`에는 커밋 SHA 사용).
+> 상태: **실험적 파일럿 (0.2.0-pilot)**. 아래 명령은 2026-11-07 Windows 11에서 실제로 실행해 결과를 확인한 것입니다(근거: `PROJECT_TRACKER.md` 검증 로그). 표시가 없는 항목은 미검증입니다. 릴리스 태그 `v0.2.0-pilot`의 pin 설치와 zip·SHA256SUMS 검증 기록이 있습니다. 문서 정리: 2026-11-13; 이번 정리는 새 원격 설치 시험이 아닙니다.
 
 ## 0. 이름과 배포 원칙
 
@@ -18,7 +18,7 @@ python scripts/validate_distribution.py
 python scripts/check_upstreams.py      # 읽기 전용 upstream 비교
 ```
 
-CI(GitHub Actions)는 ubuntu/windows × Python 3.10/3.12에서 같은 단위 테스트를 실행합니다. 이것은 단위 테스트 증거이며 Linux 호스트 E2E가 아닙니다.
+CI(GitHub Actions)는 ubuntu/windows × Python 3.10/3.12/3.13/3.14에서 같은 단위 테스트를 실행합니다. 이것은 단위 테스트 증거이며 Linux 호스트 E2E가 아닙니다.
 
 ## 2. 권장 설치 A — `gh skill` (GitHub CLI 2.90+, 검증: 2.103.3)
 
@@ -88,7 +88,7 @@ Claude Code와 GitHub Copilot CLI 모두 설치까지 확인했습니다(`docs/M
 
 ## 9. 공개 저장소 관리
 
-저장소는 이미 공개되어 있습니다(`gh repo create`를 다시 실행하지 마세요). 푸시·태그·Release·marketplace 등록은 소유자가 승인한 뒤에만 합니다. 릴리스 체크섬/서명 정책은 아직 없습니다.
+저장소는 이미 공개되어 있습니다(`gh repo create`를 다시 실행하지 마세요). 푸시·태그·Release·marketplace 등록은 소유자가 승인한 뒤에만 합니다. 파일럿 릴리스에 SHA256SUMS가 있으며, 서명·증명 정책과 태그 보호는 미완료입니다.
 
 ## 참고 문서 (2026-11-06 확인)
 

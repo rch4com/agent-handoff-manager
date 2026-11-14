@@ -36,6 +36,7 @@ Check runtime first: `python <skill-dir>/scripts/handoff.py --version` (use `pyt
 
 - `list [--status open|archived|all] [--agent NAME] [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--all-worktrees]` — JSON array of session records (`--archived` = `--status archived`; `--all-worktrees` reads other git worktrees read-only).
 - `archive <id>` and `restore <id>` with `--dry-run` (prints the plan) or `--confirm` (applies; reversible move). Always dry-run first and ask the user before `--confirm`.
+- Only `resume` accepts `latest`; moves and `write --id` require a concrete session ID from `list`.
 - `doctor` — checks the store; exit 1 lists issues. Never delete `.handoffs/.write.lock` automatically.
 - `import-legacy [--dry-run]` — copies old `.handoffs/*.md` (claude-handoff-skill format) into sessions; originals untouched; run `--dry-run` first and report skipped files.
 - `inject-rules [--target agents|claude|copilot] [--create] [--remove] (--dry-run | --apply)` — only on explicit user request; adds/updates/removes one marked `UNIFIED_HANDOFF` block, everything else in the file stays byte-identical.
