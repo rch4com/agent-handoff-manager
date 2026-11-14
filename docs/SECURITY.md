@@ -26,6 +26,8 @@ Known gaps: no entropy detection, no `.env` file reading, no PII detection, no s
 
 Local audit fixes (2026-11-13, not yet released): payload strings are scanned before JSON escaping, including strings nested in lists and objects. Quoted JSON-style assignments and multiline Bearer tokens are rejected too. Reading a session validates its payload again; invalid records are left untouched and reported without echoing payload values. This does not scan durable-state excerpts or Git history; review all output before sharing it.
 
+Execution tracking (unreleased): new runs include a full session snapshot, so they retain context even after source edits or archival. The core screens new/persisted run records and results, rejects symlinked run paths and traversing IDs, and never executes result validation strings. Agent-instance names, result commits, selections and successful outcomes are claims, not authenticated identities or verified approval. Request IDs also pass credential screening. Treat `.handoffs/runs/` with the same privacy review as sessions.
+
 ## Security review blockers
 
 - 토큰 노출, 자동 임의 명령 실행, 경로 순회, 무단 지우기, 라이선스 누락, 원본 업데이트 즉시 실행, 권한 자동 확대.

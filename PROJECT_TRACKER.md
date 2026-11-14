@@ -30,6 +30,7 @@
 | DOC-02 | README/EN/USER_GUIDE 실행 결과 동기화 | NEEDS_REVIEW | tests/test_docs_sync.py: 문서의 모든 서브커맨드/플래그가 실제 CLI에 존재; 2026-11-13 AUDIT-02에서 오래된 미구현 목록과 새 안전 동작 정리 | 미지정 | 후속 변경 시 CLI·가이드 동기화 유지 |
 | DOC-01 | 설치/배포/ Copilot 문서 | NEEDS_REVIEW | 기존 실행 로그와 설치/호환성/Copilot 요약 동기화(2026-11-13); 이번에 원격 설치·호스트 시험은 재실행하지 않음 | 미지정 | 새 버전 update, Linux/macOS 원격 온보딩, VS Code 시험; Cloud는 소유자 재개 요청 시 |
 | AUDIT-02 | 감사 지적 5건 개선 | DONE | 2026-11-13: 코어 4건 회귀 수정 + 상태 문서 동기화; 113 tests, 108 PASS/5 SKIP; 배포 구조·PS 구문·diff 검사 PASS; 독립 읽기 전용 리뷰의 자격증명 우회 지적 수정 및 재검토 완료. 아래 AUDIT-02 증거. 기준 HEAD `3d68015`; 작업 트리 변경, 미커밋 | Codex coordinator | 변경분의 Windows/Linux CI 확인 후 별도 릴리스 검토 |
+| RUN-01 | 실행·결과 기록 및 멀티 에이전트 동시성 | DONE | ADR-0006/계획 `4bcdf4b`; `run-start/run-finish/list-runs`, resume/doctor 연결, 스냅샷·결과 불변성·재시도·선택·충돌 검사. Windows 136 tests OK (7 SKIP), WSL Linux 136 tests OK (1 SKIP); 배포 구조 양쪽 PASS. 독립 리뷰의 참조 경고 지적 수정 및 재검토 완료. 아래 상세 증거 | Codex coordinator | 검토된 변경분의 공개 배포는 별도 릴리스 절차로 진행 |
 **다음 1개 작업 (2026-11-12):** 소유자 조작 대기: VS Code Agent(GUI) 시험, `vally lint` 실행, 공식 marketplace 제출 여부. Cloud Agent는 소유자 결정으로 건너뜀(SKIPPED), 시험 저장소는 삭제됨. agy 스크립트 경로는 PASS.
 
 상태: `TODO`, `IN_PROGRESS`, `NEEDS_REVIEW`, `BLOCKED`, `SKIPPED`(소유자 결정으로 시험하지 않음, 검증 아님), `DONE`, `SCAFFOLD`.
@@ -123,3 +124,20 @@
 - Review: 별도 읽기 전용 reviewer가 변경 diff·호출부·레거시 import·v1 호환성·회귀 테스트 검토. 구조화된 password 필드 지적을 수정한 뒤, fake credential 4건 거부와 안전 payload 허용을 독립 확인; 남은 차단 지적 없음. 완료 자기 보고만 사용하지 않고 coordinator가 최종 전체 테스트를 실행·확인함.
 - 한계: Linux/다른 Python 버전/실제 호스트/원격 설치는 이번 변경으로 재시험하지 않음. 기존 검증 로그는 과거 증거이며 이번 변경을 검증한 것으로 승격하지 않음. 비밀 탐지는 패턴 기반이고, 강화된 reader가 이전에 허용했던 민감 payload를 거부하면 수동 검토가 필요함. 자동 데이터 수정/마이그레이션 없음.
 - 다음 1개 작업: 변경분을 Windows/Linux CI에서 검증. 기존 `v0.2.0-pilot` 태그·설치본은 이번 수정 미포함이며 새 릴리스는 별도 검토 대상.
+
+## RUN-01 구현·검증 증거 (2026-11-15 KST / 2026-11-14 UTC)
+
+- 소유자 지시: "커밋하고 개발 진행해". 감사 수정분은 재검증 후 `88992f0`에 커밋. 승인된 설계/계획은 `4bcdf4b` (`docs/ADR-0006.md`, `docs/superpowers/plans/2026-11-15-execution-results.md`). 구현 커밋은 이 RUN-01 로그를 포함한 `feat: record immutable handoff executions and results` 커밋으로 식별.
+- 범위: 공통 코어·CLI 도움말·SKILL 지침, `tests/test_runs.py`(17), `tests/test_run_concurrency.py`(6), 설치 사본 lifecycle 확장, `examples/run_result.json`, 스키마·사용·어댑터·보안·복구·호환성·아키텍처·README·변경 이력. 기존 세션 schema v1과 데이터·애플리케이션 소스·호스트 설정은 자동 변경하지 않음. 새 의존성 없음.
+- 계약: 인계 snapshot/revision/payload hash·작업·agent instance를 실행별로 보존. 시작 request key는 로컬 store 전체, 결과 key는 실행별 멱등 재시도. 제출 결과는 변경 불가. 재시도 lineage와 명시적 `selected_runs`는 주장으로만 저장. 통합 시점 Git HEAD/dirty는 코어가 관찰하고 테스트 내용은 에이전트의 미검증 주장. `resume`은 결과와 입력 차이·끊긴 참조를 보고하며 공식 완료로 승격하지 않음.
+- TDD: 새 API가 없어 tests/test_runs.py 실패 확인 후 구현. 시작 중 읽기/시작 중단 테스트가 빈 run 디렉터리를 발견하여 실패 → `.pending-*` 디렉터리에 완성 후 rename, 일반 조회에서는 제외·doctor에서는 진단하도록 수정. 리뷰의 끊긴 selected/supersedes 참조 경고 테스트 FAIL → resume에서 참조 검사 후 PASS.
+- Windows: 실제 `C:/Users/rchco/AppData/Local/Python/pythoncore-3.14-64/python.exe -m unittest discover -s tests -v` — 136 tests, 129 PASS/7 SKIP, exit 0 (41.407s). SKIP은 symlink 생성 권한. 비ASCII 임시 경로·dirty Git·실제 subprocess 6개·Git worktree·설치 사본 CLI 포함.
+- Linux: `wsl -d Ubuntu --cd /mnt/d/Sources/github/agent-handoff-manager -- python3 -m unittest discover -s tests -v` — Python 3.12.3, WSL2 Linux 6.18.58.1, 136 tests, 135 PASS/1 SKIP(Windows 전용 short-path), exit 0 (10.214s). symlink 테스트 실제 실행. source는 Windows 마운트 체크아웃, 임시 저장소는 Linux tempfile 경로.
+- `validate_distribution.py`: Windows와 WSL Linux 모두 PASS. `git diff --check` PASS. 기존 감사 수정 기준선도 Windows 113 tests OK(5 SKIP), Linux 113 tests OK(1 SKIP) 재검증.
+- 크기 경계값: 원문 256 KB 이내라도 들여쓰기 후 1 MB를 넘는 source/result는 게시 전에 거부. 80,000개 항목의 실제 JSON 회귀 테스트 PASS; 크기 검사를 비활성화한 검증 실행에서는 같은 테스트 FAIL 확인. 정상 형식으로 게시한 뒤 reader가 크기 때문에 거부하는 상태를 방지.
+- 최종 커밋 대상 재검증: 같은 인터프리터/작업경로에서 `-m unittest discover -s tests -q` — Windows 136 OK(7 SKIP, 44.887s), Linux 136 OK(1 SKIP, 11.378s), 모두 exit 0. 출력의 `UPSTREAM_MONITOR_FAILED: Offline`은 의도된 오프라인 실패 fixture의 결과이며 suite는 정상 통과. 최종 크기 검사·타입 힌트 포함.
+- 동시성: 독립 start 6개 전부 보존, 동일 start key 6개 재시도는 동일 run 1개; 독립 finish 6개 모두 보존, 동일 finish 재시도는 원래 객체 반환; 같은 실행의 서로 다른 최종 결과 6개 중 1개만 성공/5개 충돌; source update/start 및 archive/finish/start 경합 모두 기록 보존. 복사한 worktree 결과가 달라지면 last-writer-wins 대신 오류.
+- Review: 독립 read-only reviewer가 runtime diff·스키마·복구/보안 문서·테스트를 검토. 참조 누락 경고(P2) 지적을 회귀 테스트로 재현·수정; 재검토에서 남은 차단 지적 없음. coordinator가 별도로 위 전체 테스트 출력과 종료 코드를 확인.
+- 추가 리뷰: 최종 크기 제한이 atomic_json의 UTF-8·indent·sort_keys·종단 개행과 일치하고 run/result 게시 전에 호출되는 것을 독립 확인; 남은 차단 지적 없음.
+- 한계: 실제 5개 호스트에서 신규 명령을 재시험하지 않았고 원격 설치·push·release를 하지 않음. source/request/result ID는 인증/분산 작업 선점이 아니며 Git 충돌 자동 해결은 없음. 실제 kill/power-loss/NFS는 미검증. `.pending-*`/남은 lock은 수동 점검, 자동 삭제 없음. 기존 파일럿 릴리스 태그에는 이번 확장이 없음.
+- 완료 감사: snapshot 보존, archive 후 제출, 멱등 재시도/충돌, 여러 작업자·재시도·통합 선택, 악성/손상 입력·기록, 끊긴 참조, 중단 중 읽기, subprocess 경합, cross-worktree 충돌, 설치 사본·문서 CLI 및 양 OS full suite를 위 테스트/리뷰로 확인. 다음 1개 작업은 변경분의 별도 릴리스 검토.

@@ -4,6 +4,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/), SemVer. Pre-1.0 version
 
 ## [Unreleased]
 
+### Added
+- `run-start`, `run-finish`, `list-runs`: immutable input snapshots and per-worker execution results with stable retry keys, explicit retry lineage and integration selections. Existing session schema v1 and archive layout remain unchanged (ADR-0006).
+- Concurrent run submissions, source-update/archive races, interrupted publication, read-only cross-worktree conflict checks, installed-copy lifecycle and malformed/credential regression tests. `resume` includes runs/reference warnings; `doctor` diagnoses execution records.
+
 ### Fixed
 - Reject `latest` for archive/restore (including dry-run) and `write --id`; only `resume` accepts the alias. Prevents moving a session into an invalid `latest` directory.
 - Screen original payload strings before JSON escaping; detect quoted credential assignments and multiline Bearer tokens.

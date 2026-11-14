@@ -59,6 +59,10 @@ Evidence: `PROJECT_TRACKER.md` and `docs/COMPATIBILITY.md`. Compatibility will n
 
 ## Remaining work and verification
 
+### Execution tracking in local source (unreleased)
+
+Use `run-start` to capture the received input, `run-finish` to submit an immutable per-worker result, and `list-runs`/`resume` to inspect results, retries and explicit integration selections. Identical request-key retries do not create duplicate submissions. No agent scheduling or official approval is automated. These commands are absent from the existing `v0.2.0-pilot` release tag. See `docs/USER_GUIDE.md` and `docs/ADR-0006.md`.
+
 Change proposals, upstream impact reports, Claude/Copilot marketplace manifests, and a pilot release tag/checksum already exist. Remaining work: durable-state parsing/approval, issue updates for a real upstream change, Linux/macOS host E2E, Copilot VS Code Agent, external-user clean-machine onboarding and new-version updates, signatures and tag protection. Cloud Agent testing was skipped by the owner and is not verified support. See `docs/RELEASE_GATES.md`.
 
 ## Develop

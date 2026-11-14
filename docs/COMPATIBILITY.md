@@ -32,6 +32,8 @@
 
 ## 수용 기준
 
+실행·결과 기록 확장(`run-start`, `run-finish`, `list-runs`; ADR-0006)은 로컬 소스의 미릴리스 기능입니다. 기존 호스트 smoke 기록은 새 명령 검증이 아닙니다. 새 코어는 동일한 스킬 폴더에 포함되며 별도 런타임 의존성은 추가하지 않습니다. OS별 신규 테스트 결과는 `PROJECT_TRACKER.md` RUN-01에 별도 기록합니다.
+
 각 표면에서 Skill 발견, `handoff init`, `write`, `list`, `resume`, `archive`, `restore`, update/uninstall 시험 결과를 버전·OS·로그·커밋 SHA와 함께 기록해야 `SUPPORTED`로 변경할 수 있음.
 
 ## 재현 스크립트

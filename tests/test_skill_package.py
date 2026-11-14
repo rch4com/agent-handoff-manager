@@ -35,8 +35,18 @@ class CleanCopyTests(unittest.TestCase):
             self.assertEqual(1, len(json.loads(run('list'))))
             got = json.loads(run('resume', 'latest'))
             self.assertEqual(PAYLOAD['mission'], got['session']['payload']['mission'])
+            execution = json.loads(run('run-start', rec['id'], '--task', 'core', '--agent', 'copilot',
+                                       '--agent-instance', 'copilot-1', '--request-id', 'start-1'))
+            result_payload = tmp / 'result.json'
+            result_payload.write_text(json.dumps({'outcome': 'partial', 'summary': '보존된 결과',
+                'validation': [{'command': 'python app.py', 'result': 'not_run', 'evidence': ''}],
+                'remaining_work': ['Finish implementation']}), encoding='utf-8')
             run('archive', rec['id'], '--confirm')
             self.assertEqual([], json.loads(run('list')))
+            run('run-finish', execution['id'], '--payload', str(result_payload), '--request-id', 'finish-1')
+            executions = json.loads(run('list-runs', '--session', rec['id']))
+            self.assertEqual('partial', executions[0]['state'])
+            self.assertEqual(PAYLOAD, executions[0]['run']['source_snapshot']['payload'])
             run('restore', rec['id'], '--confirm')
             self.assertTrue(json.loads(run('doctor'))['ok'])
             self.assertIn('0.2.0', run('--version') or '')  # argparse prints version to stdout on 3.4+

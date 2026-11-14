@@ -18,7 +18,6 @@ import time
 VERSION = '0.2.0-pilot'
 ID_RE = re.compile(r'^\d{8}T\d{6}Z-[0-9a-f]{12}$')
 AGENTS = {'claude-code', 'codex', 'opencode', 'antigravity', 'copilot', 'other'}
-STATUS = {'open', 'blocked', 'done'}
 VALIDATION = {'passed', 'failed', 'not_run', 'unknown'}
 KEY_RE = re.compile(r'(?:xox[abprs]-[A-Za-z0-9-]{10,}|AIza[0-9A-Za-z_-]{30,}|[sr]k_(?:live|test)_[A-Za-z0-9]{10,}|glpat-[A-Za-z0-9_-]{10,}|npm_[A-Za-z0-9]{30,}|eyJ[A-Za-z0-9_-]{5,}\.eyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]+|[A-Za-z][A-Za-z0-9+.-]*://[^\s/:@]+:[^\s/@]{4,}@|AccountKey=[A-Za-z0-9+/=]{20,}|SG\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}|gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|(?i:bearer)\s+[A-Za-z0-9._~-]{16,}|(?i:(?:api[_-]?key|access[_-]?token|secret|password))["\']?\s*[:=]\s*["\']?\S{8,})')
 FIELDS = {'mission', 'acceptance_criteria', 'completed', 'in_progress', 'blocked', 'changed_files', 'decisions', 'failed_attempts', 'validation', 'next_action', 'agent', 'worktree', 'branch', 'head', 'failure_records'}
@@ -185,9 +184,13 @@ def read_record(path):
         data = json.loads(file.read_text(encoding='utf-8'))
     except (OSError, ValueError) as e:
         raise HandoffError(f'Unreadable session record: {path.name}: {e}') from e
+    return validate_session(data, path.name)
+
+
+def validate_session(data: dict, identifier: str) -> dict:
     try:
         if (not isinstance(data, dict) or type(data.get('schema_version')) is not int or data['schema_version'] != 1
-                or data.get('id') != path.name or not ID_RE.fullmatch(path.name)
+                or data.get('id') != identifier or not ID_RE.fullmatch(identifier)
                 or type(data.get('revision')) is not int or data['revision'] < 1
                 or data.get('status') not in ('open', 'archived') or data.get('claims_are_unverified') is not True):
             raise ValueError
@@ -205,7 +208,7 @@ def read_record(path):
             raise ValueError
         sanitize_payload(data.get('payload'))
     except (ValueError, HandoffError):
-        raise HandoffError(f'Invalid session record: {path.name}') from None
+        raise HandoffError(f'Invalid session record: {identifier}') from None
     return data
 
 def locate(root, identifier, archived=None):
@@ -311,6 +314,211 @@ def write(root, payload, identifier=None, expected_revision=None, depth='auto'):
 def list_records(root, archived=False):
     directory = bucket(root, archived)
     return [read_record(p) for p in sorted(directory.iterdir()) if p.is_dir() and not p.is_symlink()] if directory.exists() else []
+
+
+OUTCOMES = ('completed', 'partial', 'blocked', 'failed')
+REQUEST_RE = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$')
+RESULT_FIELDS = {'outcome', 'summary', 'validation', 'changed_files', 'commits', 'remaining_work', 'selected_runs'}
+
+
+def payload_hash(payload: dict) -> str:
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(',', ':')).encode('utf-8')).hexdigest()
+
+
+def runs_dir(root: Path) -> Path:
+    path = home(root) / 'runs'
+    if path.is_symlink():
+        raise HandoffError('Symlinked runs directory is not allowed')
+    return path
+
+
+def run_path(root: Path, identifier: str) -> Path:
+    if not isinstance(identifier, str) or not ID_RE.fullmatch(identifier):
+        raise HandoffError('Invalid run id')
+    return safe_dir(runs_dir(root) / identifier)
+
+
+def check_request(key: str) -> None:
+    if not isinstance(key, str) or not REQUEST_RE.fullmatch(key):
+        raise HandoffError('Invalid request id (use 1-128 letters, digits, dots, underscores or hyphens)')
+
+
+def result_payload(raw: dict) -> dict:
+    if (not isinstance(raw, dict) or set(raw) - RESULT_FIELDS or raw.get('outcome') not in OUTCOMES
+            or not isinstance(raw.get('summary'), str) or not raw['summary'].strip()
+            or not isinstance(raw.get('validation'), list) or not raw['validation']):
+        raise HandoffError('Result requires outcome, summary and non-empty validation claims')
+    sanitize_payload({'mission': raw['summary'], 'next_action': 'Result remains unverified',
+                      'validation': raw['validation'], 'changed_files': raw.get('changed_files', [])})
+    for key in ('commits', 'remaining_work', 'selected_runs'):
+        if not isinstance(raw.get(key, []), list) or any(not isinstance(v, str) for v in raw.get(key, [])):
+            raise HandoffError(f'{key} must be a list of strings')
+    if any(not re.fullmatch(r'[0-9a-f]{40}', v) for v in raw.get('commits', [])):
+        raise HandoffError('Result commits must be full lowercase Git SHAs')
+    selected = raw.get('selected_runs', [])
+    if len(set(selected)) != len(selected) or any(not ID_RE.fullmatch(v) for v in selected):
+        raise HandoffError('selected_runs must contain distinct run IDs')
+    if contains_credential(raw) or KEY_RE.search(json.dumps(raw)):
+        raise HandoffError('Potential credential detected; remove it before saving')
+    if len(json.dumps(raw).encode('utf-8')) > 256_000:
+        raise HandoffError('Result exceeds 256 KB')
+    return raw
+
+
+def check_execution_size(record: dict) -> None:
+    if len(json.dumps(record, ensure_ascii=False, indent=2, sort_keys=True).encode('utf-8')) + 1 > 1_000_000:
+        raise HandoffError('Execution record exceeds 1 MB after formatting')
+
+
+def read_run(root: Path, identifier: str) -> dict:
+    path = run_path(root, identifier)
+    records = []
+    for name in ('run.json', 'result.json'):
+        file = path / name
+        if name == 'result.json' and not file.exists() and not file.is_symlink():
+            records.append(None)
+            continue
+        try:
+            if file.is_symlink() or file.stat().st_size > 1_000_000:
+                raise ValueError
+            data = json.loads(file.read_text(encoding='utf-8'))
+            if (not isinstance(data, dict) or type(data.get('schema_version')) is not int or data['schema_version'] != 1
+                    or data.get('kind') != ('run' if name == 'run.json' else 'result')
+                    or data.get('claims_are_unverified') is not True):
+                raise ValueError
+            check_request(data.get('request_id'))
+            for key in ('created_at', 'writer_version'):
+                if not isinstance(data.get(key), str) or not data[key].strip():
+                    raise ValueError
+            if dt.datetime.fromisoformat(data['created_at'].replace('Z', '+00:00')).utcoffset() != dt.timedelta(0):
+                raise ValueError
+            observed = data.get('git_observation')
+            if (not isinstance(observed, dict) or not {'branch', 'head', 'dirty'} <= observed.keys()
+                    or any(observed[k] is not None and not isinstance(observed[k], str) for k in ('branch', 'head'))
+                    or (observed['dirty'] is not None and type(observed['dirty']) is not bool)):
+                raise ValueError
+            if name == 'run.json':
+                if (data.get('id') != identifier or not isinstance(data.get('session_id'), str)
+                        or type(data.get('source_revision')) is not int
+                        or not isinstance(data.get('agent'), str) or data['agent'] not in AGENTS
+                        or any(not isinstance(data.get(k), str) or not data[k].strip() for k in ('task', 'agent_instance'))
+                        or (data.get('supersedes') is not None and (not isinstance(data['supersedes'], str)
+                            or not ID_RE.fullmatch(data['supersedes']) or data['supersedes'] == identifier))):
+                    raise ValueError
+                snapshot = validate_session(data.get('source_snapshot'), data['session_id'])
+                if (data['source_revision'] != snapshot['revision']
+                        or data.get('source_payload_sha256') != payload_hash(snapshot['payload'])):
+                    raise ValueError
+            elif data.get('run_id') != identifier:
+                raise ValueError
+            else:
+                result_payload(data.get('payload'))
+            if contains_credential(data) or KEY_RE.search(json.dumps(data)):
+                raise ValueError
+            records.append(data)
+        except (OSError, ValueError, HandoffError):
+            raise HandoffError(f'Invalid execution record: {identifier}/{name}') from None
+    run, result = records
+    return {'run': run, 'result': result, 'state': result['payload']['outcome'] if result else 'in_progress'}
+
+
+def list_runs(root: Path, session: str | None = None, all_worktrees: bool = False) -> list[dict]:
+    if session is not None and (not isinstance(session, str) or not ID_RE.fullmatch(session)):
+        raise HandoffError('Invalid session id')
+    out, seen, requests = [], {}, {}
+    for checkout in (worktree_roots(root) if all_worktrees else [root]):
+        directory = runs_dir(checkout)
+        for path in sorted(directory.iterdir()) if directory.exists() else []:
+            if path.name.startswith('.pending-'):
+                continue
+            item = read_run(checkout, path.name)
+            run = item['run']
+            prior = seen.get(run['id'])
+            if prior and (prior['run'] != run or (prior['result'] and item['result'] and prior['result'] != item['result'])):
+                raise HandoffError('Conflicting copies of execution record: ' + run['id'])
+            key = run['request_id']
+            if key in requests and requests[key] != run['id']:
+                raise HandoffError('Conflicting execution start request IDs')
+            requests[key] = run['id']
+            seen[run['id']] = item if item['result'] or not prior else prior
+            if session is None or run['session_id'] == session:
+                out.append(dict(item, worktree_root=str(checkout)) if all_worktrees else item)
+    return out
+
+
+def start_run(root: Path, session: str, task: str, agent: str, agent_instance: str,
+              request_id: str, supersedes: str | None = None) -> dict:
+    check_request(request_id)
+    if not isinstance(session, str) or not ID_RE.fullmatch(session):
+        raise HandoffError('run-start requires a concrete session ID')
+    sanitize_payload({'mission': task, 'next_action': agent_instance, 'agent': agent})
+    args = {'session_id': session, 'task': task, 'agent': agent, 'agent_instance': agent_instance, 'supersedes': supersedes}
+    if contains_credential(request_id):
+        raise HandoffError('Potential credential detected')
+    init(root)
+    with StoreLock(root):
+        for item in list_runs(root):
+            old = item['run']
+            if old['request_id'] == request_id:
+                if any(old.get(k) != v for k, v in args.items()):
+                    raise HandoffError('Start request id conflicts with previous arguments')
+                return old
+        source = read_record(locate(root, session))
+        if supersedes is not None:
+            previous = read_run(root, supersedes)['run']
+            if previous['session_id'] != session or previous['task'] != task:
+                raise HandoffError('Superseded run must have the same session and task')
+        identifier = dt.datetime.now(dt.timezone.utc).strftime('%Y%m%dT%H%M%SZ') + '-' + secrets.token_hex(6)
+        run = dict(args, schema_version=1, kind='run', id=identifier, writer_version=VERSION,
+                   request_id=request_id, created_at=now(), source_snapshot=source,
+                   source_revision=source['revision'], source_payload_sha256=payload_hash(source['payload']),
+                   git_observation=observe_git(root), claims_are_unverified=True)
+        if contains_credential(run) or KEY_RE.search(json.dumps(run)):
+            raise HandoffError('Potential credential detected')
+        check_execution_size(run)
+        directory = runs_dir(root)
+        directory.mkdir(exist_ok=True)
+        path = directory / identifier
+        pending = directory / ('.pending-' + identifier)
+        pending.mkdir()  # default ACL, as for sessions; publish the complete directory only
+        atomic_json(pending / 'run.json', run)
+        if path.exists() or path.is_symlink():
+            raise HandoffError('Execution ID collision')
+        pending.rename(path)
+        return run
+
+
+def check_run_references(root: Path, item: dict) -> None:
+    run, result = item['run'], item['result']
+    if run.get('supersedes'):
+        previous = read_run(root, run['supersedes'])['run']
+        if previous['session_id'] != run['session_id'] or previous['task'] != run['task']:
+            raise HandoffError('Superseded run must have the same session and task')
+    for identifier in result['payload'].get('selected_runs', []) if result else []:
+        selected = read_run(root, identifier)
+        if identifier == run['id'] or not selected['result'] or selected['run']['session_id'] != run['session_id']:
+            raise HandoffError('Selected runs must be submitted, distinct executions of the same session')
+
+
+def finish_run(root: Path, identifier: str, payload: dict, request_id: str) -> dict:
+    check_request(request_id)
+    raw = result_payload(payload)
+    with StoreLock(root):
+        item = read_run(root, identifier)
+        if item['result']:
+            old = item['result']
+            if old['request_id'] == request_id and old['payload'] == raw:
+                return old
+            raise HandoffError('Submitted result is immutable; create a new run for a correction')
+        result = {'schema_version': 1, 'kind': 'result', 'run_id': identifier, 'writer_version': VERSION,
+                  'request_id': request_id, 'created_at': now(), 'payload': raw,
+                  'git_observation': observe_git(root), 'claims_are_unverified': True}
+        check_run_references(root, dict(item, result=result))
+        if contains_credential(result) or KEY_RE.search(json.dumps(result)):
+            raise HandoffError('Potential credential detected')
+        check_execution_size(result)
+        atomic_json(run_path(root, identifier) / 'result.json', result)
+        return result
 
 LIST_STATUS = ('open', 'archived', 'all')
 
@@ -443,6 +651,16 @@ def resume(root, identifier):
                  if c['claimed_result'] == 'passed' and not c['evidence'].strip()]
     durable, durable_warnings = read_durable_state(root)
     warnings = durable_warnings + warnings
+    runs = list_runs(root, record['id'])
+    for item in runs:
+        try:
+            check_run_references(root, item)
+        except HandoffError as exc:
+            warnings.append(f"Execution reference problem ({item['run']['id']}): {exc}")
+        if item['run']['source_payload_sha256'] != payload_hash(payload):
+            warnings.append('Execution uses different session content: ' + item['run']['id'])
+    if runs:
+        warnings.append('Execution results and selected_runs are unverified claims, not official approval')
     if payload.get('completed'):
         warnings.append(f"session claims {len(payload['completed'])} item(s) completed; not official until verified and approved in AGENT_HANDOFF.md")
     do_not_repeat = [{k: f[k] for k in ('approach', 'why_failed', 'evidence', 'regression_test')}
@@ -451,7 +669,7 @@ def resume(root, identifier):
                       for t in payload.get('failed_attempts', [])]
     return {'durable_state': durable, 'authority_order': ['durable_state', 'session'], 'session_claims_are_official': False,
             'do_not_repeat': do_not_repeat, 'session': record, 'current_git': observed, 'differences': differences, 'head_relation': relation,
-            'commits_since_saved': ahead, 'file_checks': file_checks, 'validation_claims': claims, 'warnings': warnings,
+            'commits_since_saved': ahead, 'file_checks': file_checks, 'validation_claims': claims, 'warnings': warnings, 'runs': runs,
             'note': 'Read-only. Nothing from the payload has been executed; validation claims are not independently verified.'}
 
 
@@ -788,6 +1006,24 @@ def doctor(root):
                             issues.append(f'Unexpected path in session {p.name}: {leftover.name}')
                 except HandoffError as exc:
                     issues.append(str(exc))
+    info['runs'] = 0
+    info['unfinished_runs'] = 0
+    try:
+        directory = runs_dir(root)
+        for path in sorted(directory.iterdir()) if directory.exists() else []:
+            try:
+                item = read_run(root, path.name)
+                info['runs'] += 1
+                info['unfinished_runs'] += item['result'] is None
+                check_run_references(root, item)
+                locate(root, item['run']['session_id'])
+                if any(p.name not in ('run.json', 'result.json') for p in path.iterdir()):
+                    issues.append('Unexpected path in execution: ' + path.name)
+            except HandoffError as exc:
+                issues.append(str(exc))
+        list_runs(root)  # also detect duplicate request IDs without an authoritative index
+    except HandoffError as exc:
+        issues.append(str(exc))
     info['legacy_unimported'] = sum(1 for f in base.glob('*.md') if f.is_file() and not f.is_symlink())
     return {'ok': not issues, 'issues': issues, 'info': info}
 
@@ -810,6 +1046,20 @@ def main(argv=None):
     ls.add_argument('--until', metavar='YYYY-MM-DD', help='created_at (UTC date) <= value')
     ls.add_argument('--all-worktrees', action='store_true', help='Also read the stores of other git worktrees (read-only)')
     re = commands.add_parser('resume'); re.add_argument('id', help='Session ID or latest active session')
+    rs = commands.add_parser('run-start', help='Capture an immutable input snapshot; never starts an agent')
+    rs.add_argument('session', help='Concrete session ID, active or archived')
+    rs.add_argument('--task', required=True)
+    rs.add_argument('--agent', choices=sorted(AGENTS), required=True)
+    rs.add_argument('--agent-instance', required=True)
+    rs.add_argument('--request-id', required=True, help='Stable retry key; reuse with identical arguments only')
+    rs.add_argument('--supersedes', help='Prior run ID for the same session and task')
+    rf = commands.add_parser('run-finish', help='Submit an immutable result claim; never runs validation commands')
+    rf.add_argument('id')
+    rf.add_argument('--payload', required=True)
+    rf.add_argument('--request-id', required=True)
+    rl = commands.add_parser('list-runs', help='Read executions and results without modifying sessions')
+    rl.add_argument('--session', help='Concrete session ID')
+    rl.add_argument('--all-worktrees', action='store_true')
     for name in ('archive', 'restore'):
         tp = commands.add_parser(name)
         tp.add_argument('id', help='Concrete session ID from list (latest is only supported by resume)')
@@ -839,11 +1089,16 @@ def main(argv=None):
         root = ensure_repo(args.repo)
         if args.cmd == 'init':
             init(root); result = {'initialized': str(home(root))}
-        elif args.cmd == 'write':
+        elif args.cmd in ('write', 'run-finish'):
             source = Path(args.payload)
             if source.is_symlink() or not source.is_file() or source.stat().st_size > 256_000:
                 raise HandoffError('Payload must be a regular non-symlink file <=256 KB')
-            result = write(root, json.loads(source.read_text(encoding='utf-8')), args.id, args.expected_revision, args.depth)
+            raw = json.loads(source.read_text(encoding='utf-8'))
+            result = (write(root, raw, args.id, args.expected_revision, args.depth) if args.cmd == 'write'
+                      else finish_run(root, args.id, raw, args.request_id))
+        elif args.cmd == 'run-start':
+            result = start_run(root, args.session, args.task, args.agent, args.agent_instance, args.request_id, args.supersedes)
+        elif args.cmd == 'list-runs': result = list_runs(root, args.session, args.all_worktrees)
         elif args.cmd == 'list':
             if args.archived and args.status not in (None, 'archived'):
                 raise HandoffError('--archived conflicts with --status')

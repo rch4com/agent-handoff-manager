@@ -17,6 +17,8 @@ Historical evidence reconciled on 2026-11-13. `[x]` = evidence exists in `PROJEC
 
 ## Stable v1.0 blockers
 
+Execution tracking (ADR-0006) is implemented in local source, not the existing release tag. Core tests cover Windows and WSL Linux, including simultaneous starts/finishes and archive/update races; see RUN-01 in `PROJECT_TRACKER.md`. This does not replace host smoke, distributed coordination or power-loss gates below.
+
 - [ ] write + resume verified on **every** host (core-invocation write verified on all five hosts' CLIs; agent-composed payload verified only on Claude Code and Codex) and host runs on Linux/macOS (core tests already pass on Linux)
 - [ ] Copilot VS Code Agent Mode end-to-end (not tested); Cloud Agent test skipped by owner on 2026-11-12, not verified support
 - [ ] Real process-kill and power-loss durability, network filesystems (simulated interruptions are tested: `docs/RECOVERY_PROTOCOL.md`)

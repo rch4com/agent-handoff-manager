@@ -25,6 +25,7 @@ Antigravity─┤
 | `.agent-handoff/*.md` | 의사결정/검증/리스크/장기 상태 | 세션별 archive index |
 | `.handoffs/sessions/<id>/` | 특정 작업 중의 진척, 다음 명령, 환경 스냅샷 | 프로젝트의 공식 완료 승인 |
 | `.handoffs/archive/` | 복구 가능한 종료된 세션 | 검증 이력 원본 삭제 |
+| `.handoffs/runs/<id>/` | 실행 당시 인계 스냅샷과 작업자별 미검증 결과 | 자동 공식 완료 승인·분산 작업 선점 |
 | `upstreams.lock.json` | 리뷰 후 채택된 업스트림 commit SHA | 발견했지만 미채택된 HEAD |
 | user-level index | 재생성 가능한 검색 캐시 | Git 팀의 공식 상태 DB |
 
@@ -38,6 +39,9 @@ python <skill-dir>/scripts/handoff.py [--repo PATH] <command>
   write --payload FILE [--depth auto|minimal|rich|exhaustive] [--id ID --expected-revision N]
   list [--status open|archived|all] [--archived] [--agent NAME] [--since D] [--until D] [--all-worktrees]
   resume <id|latest>
+  run-start <session-id> --task TEXT --agent NAME --agent-instance TEXT --request-id KEY [--supersedes RUN_ID]
+  run-finish <run-id> --payload FILE --request-id KEY
+  list-runs [--session SESSION_ID] [--all-worktrees]
   archive <id> (--dry-run | --confirm)
   restore <id> (--dry-run | --confirm)
   doctor
@@ -80,6 +84,8 @@ Differences from the first plan: there is no `handoff` shortcut binary (ADR-0002
 - 사용자별 전역 목록은 캐시로만 사용; 캐시가 없어도 프로젝트의 sessions 스캔으로 복구 가능.
 
 ## Validation gate
+
+Execution tracking (ADR-0006, unreleased): `.handoffs/runs/<run-id>/run.json` captures an immutable session snapshot; `result.json` is a single immutable submission. Source archive/restore never moves runs. The same local store lock protects snapshot capture and idempotent publication, not agent execution. Results, retry lineage and explicit `selected_runs` are unverified claims. Different task workers write different files; distributed Git/worktree conflicts still require review. See `docs/SCHEMA_SPEC.md` and `docs/USER_GUIDE.md`.
 
 세션 상태 `done` ≠ 공식 프로젝트 상태 `verified`. 공식 완료 변경에는 아래 최소 근거 필요:
 - 대상 요구사항 및 승인 기준 충족 여부.

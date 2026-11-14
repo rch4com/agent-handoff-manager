@@ -1,0 +1,17 @@
+{
+  "outcome": "partial",
+  "summary": "Implemented the core change; host smoke tests remain",
+  "validation": [
+    {
+      "command": "python -m unittest discover -s tests -v",
+      "result": "not_run",
+      "evidence": "Example payload only; replace with observed output before claiming passed"
+    }
+  ],
+  "changed_files": [
+    {"path": "src/example.py", "owner": "codex"}
+  ],
+  "commits": [],
+  "remaining_work": ["Run relevant tests and record actual results"],
+  "selected_runs": []
+}

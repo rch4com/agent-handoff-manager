@@ -12,7 +12,13 @@ Every host (Claude Code, Codex, OpenCode, Antigravity, Copilot) MUST produce the
 6. Never promote `completed` or reported tests to `verified` project state; only a human-approved or separately validated coordinator can do that.
 7. Protect payload file permissions, delete intermediate plaintext after successful save when appropriate, and avoid logging full secrets or sensitive payloads.
 
-## Adapter readiness matrix (2026-11-07, Windows 11; details in `docs/COMPATIBILITY.md`)
+## Execution records (unreleased extension)
+
+Hosts may use the same installed core to capture `run-start` before processing a received handoff and `run-finish` after processing it. Read the returned input snapshot, preserve the returned run ID and caller-generated request keys, and reuse those keys with identical inputs if the response is uncertain. Do not launch agents through the core, auto-retry a revision conflict, edit immutable results, or treat outcome/selection claims as approval. Distinguish workers with `agent_instance`; retries use a new run and `supersedes`. Result validation uses the existing claim contract; commands are never executed by the core. Schema and examples are in `SCHEMA_SPEC.md` and `USER_GUIDE.md`.
+
+The new commands have core/installed-copy tests only. Historical host smoke results below do not validate host use of execution records.
+
+## Historical adapter readiness (2026-11-07, Windows 11)
 
 | Host | Payload contract defined | Skill discovered | Core executed by the host | write | resume |
 |---|---|---|---|---|---|

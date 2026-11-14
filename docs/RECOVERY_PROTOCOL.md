@@ -32,3 +32,10 @@ The runtime does not implement automatic rollback journals, cross-machine leases
 | Process killed while holding `.write.lock` | next writers fail after about 4 s naming the lock owner (`pid=... time=...`); `doctor` reports it | verify the process is gone, remove the lock file **manually**; never automatic |
 
 Real `kill -9`/power-loss durability (fsync ordering, network filesystems) is **not** tested; `os.replace` + `fsync` are used but not proven under such faults.
+
+## Execution/result publication (ADR-0006, unreleased)
+
+- A start is staged in `.handoffs/runs/.pending-<id>/` then renamed to `<id>/` after `run.json` is complete. Readers ignore staging directories; `doctor` flags leftovers. Interrupted unpublished starts do not block other run IDs. Inspect/back up leftover directories manually; no automatic deletion.
+- A finish writes `result.json` atomically under the same store lock. If interrupted before publication, the run remains `in_progress`; retry with the same request key and payload. After publication, replay returns the exact original record. No result is overwritten.
+- An orphan run ID directory, unsupported schema, bad snapshot hash, symlink, malformed result, missing predecessor/selection, or duplicate request key is diagnosed without rewriting records. Restore missing referenced records from reviewed Git history; do not silently select another result.
+- Existing stale-lock handling applies. Archive/restore moves only sessions. Run/result durability is local; no NFS/power-loss or cross-machine lock guarantee is added.

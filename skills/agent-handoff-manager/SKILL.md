@@ -43,6 +43,15 @@ Check runtime first: `python <skill-dir>/scripts/handoff.py --version` (use `pyt
 - `upstream status` — offline; prints the upstream commits this version is based on (no network, no update check).
 - `init` — creates empty `.handoffs/sessions` and `archive` (idempotent).
 
-## Status
+## Execution results (unreleased core extension)
+
+- If asked to record work received from a handoff, run `run-start SESSION_ID --task TEXT --agent NAME --agent-instance UNIQUE_WORKER_NAME --request-id STABLE_KEY`. This only snapshots the input; read `source_snapshot` before working. It does not launch agents. Each worker/task/attempt gets its own run.
+- Submit `run-finish RUN_ID --payload FILE --request-id STABLE_KEY`. Required result fields: `outcome` (`completed|partial|blocked|failed`), `summary`, non-empty `validation` (same claim format as handoffs; `not_run` when untested). Optional `changed_files`, `commits` (full Git SHAs), `remaining_work` (strings), `selected_runs` (submitted run IDs from the same session). All results remain unverified.
+- Reuse request keys and identical arguments/payload after an uncertain response. Never overwrite a result or bypass a conflict by choosing the latest session revision. Corrections/retries use a new start key and `--supersedes PREVIOUS_RUN_ID` for the same session/task.
+- `list-runs [--session SESSION_ID] [--all-worktrees]` is read-only. `resume` includes runs and warns about changed source content/broken references. `in_progress` means no result exists, not that a live process was observed.
+- The coordinator may record a separate integration run with explicit `selected_runs`, actual integrated Git HEAD and test evidence. Never auto-promote worker results or edit official durable state because of a result. Pull records from another worktree/machine through reviewed Git integration before selecting them. Local locks do not guarantee distributed work ownership.
+- These commands are absent from the existing pilot release tag; check the installed core's `--help`. Use a private payload file and remove it after submission, as for `write`.
+
+## Verified scope
 
 Verified only what `PROJECT_TRACKER.md` and `docs/COMPATIBILITY.md` list as verified. Do not claim support for a host or install channel that table does not mark verified.

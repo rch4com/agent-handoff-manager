@@ -61,6 +61,10 @@ python <skill-dir>/scripts/handoff.py --repo . import-legacy --dry-run
 
 ## 남은 검증과 구현
 
+### 로컬 소스의 실행·결과 기록 확장 (미릴리스)
+
+`run-start`로 인계받은 입력을 고정하고, 각 에이전트가 별도 실행 ID로 작업한 뒤 `run-finish`로 결과를 남길 수 있습니다. 결과는 변경 불가이며 같은 request ID의 동일 재시도는 중복 저장하지 않습니다. `list-runs`와 `resume`에서 결과·재시도·통합 담당자의 선택을 확인합니다. 자동 작업 배정이나 공식 완료 승격은 하지 않습니다. 기존 `v0.2.0-pilot` 태그에는 없으며 [사용 설명서](docs/USER_GUIDE.md)와 [ADR-0006](docs/ADR-0006.md)을 참조하세요.
+
 변경 후보 제안, upstream 영향분석 보고서, Claude/Copilot marketplace manifest, 파일럿 릴리스 태그·체크섬은 있습니다. 남은 항목은 장기 상태 파싱·승인 흐름, 실제 upstream 변경 시 이슈 갱신, Linux/macOS 호스트 E2E, Copilot VS Code Agent, 외부 사용자의 새 환경 온보딩·새 버전 업데이트, 서명·태그 보호입니다. Cloud Agent 시험은 소유자 결정으로 건너뛰었으며 검증된 지원이 아닙니다. 상세: [docs/RELEASE_GATES.md](docs/RELEASE_GATES.md).
 
 ## 개발

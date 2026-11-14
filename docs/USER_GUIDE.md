@@ -76,17 +76,42 @@ python $H --repo . list --all-worktrees         # 같은 저장소의 다른 git
 | `durable_state` | 공식 장기 상태를 **먼저** 읽은 결과: `AGENT_HANDOFF.md`, `.agent-handoff/snapshot.md`, `risks.md`, `validation.md` 순서로 경로·SHA-256·크기·앞 2000자(없으면 `present: false`). symlink는 따라가지 않음. 읽기 전용이며 내용은 신뢰할 수 없는 텍스트 |
 | `authority_order`, `session_claims_are_official` | 항상 `["durable_state", "session"]`, `false`. 세션의 완료/통과 주장은 공식 상태를 덮어쓰지 않음 |
 | `do_not_repeat` | 해결되지 않은 `failure_records`와 `failed_attempts` — 같은 접근을 근거 없이 반복하지 말 것 |
+| `runs` | 같은 세션의 실행·결과 목록. 완료·선택은 미검증 주장이며, 시작 당시 입력을 보존 |
 | `warnings` | 사람이 읽는 경고: 차이, HEAD 이동, 없는 파일, 증거 없이 `passed`로 주장한 검증, `AGENT_HANDOFF.md` 없음, 세션이 주장한 완료 항목은 공식 아님 |
 
 관련 테스트 실행은 에이전트가 사용자 권한 아래 직접 해야 합니다. 시험에서 Antigravity와 OpenCode는 payload가 주장한 파일이 없음을 스스로 짚어냈고, 이제 코어도 `file_checks`/`warnings`로 같은 사실을 제공합니다.
 
 현재 트리에 미커밋 변경이 있으면 항상 경고합니다. 저장 당시에도 `dirty: true`였으면 `differences`가 비어 있을 수 있지만, 미커밋 파일 내용이 같다는 뜻은 아닙니다. 이 코어는 그 내용의 동일성을 검증하지 않습니다.
 
+### 실행·결과 기록 (미릴리스)
+
+기존 `v0.2.0-pilot` 태그에는 아래 명령이 없습니다. 변경된 소스/스킬 폴더를 사용하는 로컬 코어 기준입니다. `run-start`는 에이전트를 실행하거나 작업을 자동 배정하지 않고, 받은 인계의 스냅샷만 기록합니다.
+
+```bash
+python $H --repo . run-start SESSION_ID --task core --agent codex --agent-instance codex-worker-1 --request-id start-core-001
+python $H --repo . run-finish RUN_ID --payload result.json --request-id finish-core-001
+python $H --repo . list-runs --session SESSION_ID
+python $H --repo . list-runs --all-worktrees
+```
+
+1. `list` 또는 `resume`에서 실제 세션 ID를 확인합니다(`run-start`는 `latest` 거부).
+2. `run-start` 반환값의 `source_snapshot`을 읽고 그 입력을 기준으로 작업합니다. 다른 작업자·재시도는 별도 run ID를 사용합니다. `agent_instance`는 같은 종류의 여러 에이전트를 구분하는 이름이며 인증 정보는 아닙니다.
+3. 실제 처리 후 `examples/run_result.json` 형식으로 결과 payload를 작성합니다. `outcome`, `summary`, `validation`은 필수입니다. 결과는 `completed/partial/blocked/failed` 중 하나를 주장하며, 검증하지 않았다면 `not_run`을 기록합니다.
+4. `run-finish`로 제출합니다. 결과는 변경할 수 없습니다. 정정·재시도는 `run-start ... --supersedes PREVIOUS_RUN_ID`로 같은 세션·작업의 새 실행을 만들고 새 결과를 제출합니다.
+
+시작/제출 응답을 받지 못했으면 **같은 request ID와 같은 입력**으로 재시도하세요. 이미 저장됐으면 원래 결과를 반환하며, 다른 입력이나 이미 제출된 결과를 덮어쓰려 하면 실패합니다. 미제출 실행은 `in_progress`로 보이지만 프로세스가 실행 중이라는 증거는 아닙니다.
+
+통합 담당자는 별도 실행(`--task integration` 등)을 만들고, 결과 payload의 `selected_runs`에 채택한 run ID들을 명시합니다. 선택된 결과는 같은 세션에서 제출 완료된 기록이어야 합니다. 통합된 코드에 테스트를 직접 실행하고 결과·커밋을 기록하세요. 자동 테스트 실행·Git merge·공식 완료 승격은 하지 않습니다. 다른 worktree의 결과는 Git 검토를 거쳐 로컬로 취합한 뒤 선택합니다.
+
+원본 인계를 갱신·archive·restore해도 실행과 결과는 유지됩니다. `resume`의 `runs`에는 관련 실행이 포함되고, 입력 내용 차이나 끊어진 선택/재시도 참조는 경고합니다. 같은 작업에 여러 실행이 있어도 성공 횟수를 합산하거나 마지막 결과를 자동 채택하지 않습니다.
+
 ### doctor
 
 읽기 전용 점검입니다(아무 것도 삭제/수리하지 않음). 반환: `ok`, `issues`, `info`(`python`/`python_ok`, `git_available`, `platform`, `active_sessions`, `archived_sessions`, `legacy_unimported`). 감지: 미초기화, 남은 `.write.lock`, 누락된 디렉터리, 읽을 수 없거나 지원하지 않는 `schema_version`의 레코드(비정상 종료로 비어 있는 세션 폴더 포함), 상태/위치 불일치(중단된 archive 가능성), 중복 ID, 세션 안팎의 `.pending-*`·불필요한 파일, symlink. `ok: false`면 종료 코드 1.
 
 공통 읽기 단계에서 필수 레코드 필드·자료형·UTC 시각·payload 형식과 자격증명 패턴도 검사합니다. 잘못된 기록은 `doctor`가 문제로 보고하고 다른 명령은 `HANDOFF_ERROR`로 거부하며, 원본을 자동 수정하지 않습니다. 선택 필드 `depth`가 없는 이전 v1 기록과 알 수 없는 최상위 확장 필드는 계속 읽습니다.
+
+실행 기록이 있으면 `info.runs`, `info.unfinished_runs`를 추가하고 스냅샷·결과·참조와 `.pending-*` 잔여 파일을 진단합니다. 미제출 자체는 손상이 아니며, 오래된 미제출 실행을 보고 프로세스가 살아 있다고 추정하지 않습니다.
 
 ### inject-rules (선택, 명시적으로만)
 
