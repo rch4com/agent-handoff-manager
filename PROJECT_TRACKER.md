@@ -152,3 +152,4 @@
 
 - 코어·변경 이력은 `0.3.0-pilot`, 스킬 메타데이터·플러그인 매니페스트는 `0.3.0`. 문서 리뷰에서 현재 소스 버전과 기존 공개 태그를 구분하고 버전 일치 테스트를 추가. 추출한 ZIP의 코어가 ZIP 이름과 같은 전체 버전을 출력함을 확인.
 - 최종 `python -m unittest discover -s tests -q` 종료 코드 0. Windows 137개 중 130개 통과, 7개 건너뜀. WSL Linux 137개 중 136개 통과, 1개 건너뜀. 배포 구조 검사 및 동일 SkillEvaluator 정적 검사 통과(84.5점, 게시 판정 `INCOMPLETE`).
+- 공개 태그 `v0.3.0-pilot` → `1360e6f`. GitHub Actions의 Pilot unit and distribution tests 성공. Windows의 임시 Git 저장소에서 `gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent codex --scope project --pin v0.3.0-pilot`로 설치한 뒤 `--version`이 `0.3.0-pilot`을 출력하고 `write` → `resume`이 같은 세션 ID를 반환함을 확인. 검증 범위는 고정 설치와 Python 코어 실행. [CI 실행 기록](https://github.com/rch4com/agent-handoff-manager/actions/runs/45785507388)

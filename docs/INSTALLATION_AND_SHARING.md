@@ -33,7 +33,15 @@ gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent cod
 
 업데이트·제거(실측): `--pin`으로 설치한 스킬은 `gh skill update agent-handoff-manager`가 `pinned to <sha> (skipped)`로 건너뜁니다. `gh skill`에는 uninstall 명령이 없어 스킬 폴더(`.agents/skills/agent-handoff-manager/`)를 직접 지우는 것이 제거입니다. 제거·재설치(이전 커밋 -> 최신 커밋) 후에도 `.handoffs/` 데이터는 그대로이며 새 버전이 이전 버전이 쓴 세션을 읽고 `doctor`가 `ok: true`였습니다. 핀 없는 설치가 새 커밋을 받는 `update` 경로는 새 릴리스가 생길 때 시험합니다. `gh skill publish --dry-run`은 통과했습니다(태그 보호 규칙 없음 경고만).
 
-### 릴리스 태그로 고정 (pre-release)
+### 태그로 고정
+
+Windows에서 `v0.3.0-pilot` 고정 설치 후 Python 코어의 버전 출력과 `write` → `resume`을 확인했습니다(2026-11-26, gh 2.103.3).
+
+```bash
+gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent codex --scope project --pin v0.3.0-pilot
+```
+
+기존 `v0.2.0-pilot` 사전 릴리스의 설치 기록은 아래와 같습니다.
 
 ```bash
 gh skill install rch4com/agent-handoff-manager agent-handoff-manager --agent github-copilot --scope project --pin v0.2.0-pilot

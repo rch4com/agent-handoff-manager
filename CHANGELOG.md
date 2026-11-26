@@ -4,7 +4,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/), SemVer. Pre-1.0 version
 
 ## [0.3.0-pilot] - 2026-11-26
 
-Experimental source version. The published pilot tag is `v0.2.0-pilot`.
+Experimental source tag `v0.3.0-pilot`. The packaged GitHub pre-release is `v0.2.0-pilot`.
 
 ### Added
 - `run-start`, `run-finish`, `list-runs`: immutable input snapshots and per-worker execution results with stable retry keys, explicit retry lineage and integration selections. Existing session schema v1 and archive layout remain unchanged (ADR-0006).
