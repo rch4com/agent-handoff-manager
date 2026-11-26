@@ -1,6 +1,6 @@
 # 사용자 사용 설명서 (로컬 파일럿 기준)
 
-> 이 문서는 `skills/agent-handoff-manager/scripts/handoff.py` 0.2.0-pilot 기준이며, 2026-11-13 로컬 감사 수정 사항을 포함합니다(기존 릴리스 태그에는 미포함). `handoff ...` 단축 명령과 `--verify-only`는 없으며 `resume`은 항상 읽기 전용입니다. `archive`/`restore`는 `--dry-run`을 지원합니다. 설치: [INSTALLATION_AND_SHARING.md](INSTALLATION_AND_SHARING.md). 호스트별 검증 상태: [COMPATIBILITY.md](COMPATIBILITY.md).
+> 이 문서는 `skills/agent-handoff-manager/scripts/handoff.py` 0.3.0-pilot 소스 기준입니다. 공개 태그 `v0.2.0-pilot`에는 일부 변경 사항이 없습니다. `handoff ...` 단축 명령과 `--verify-only`는 없으며 `resume`은 항상 읽기 전용입니다. `archive`/`restore`는 `--dry-run`을 지원합니다. 설치: [INSTALLATION_AND_SHARING.md](INSTALLATION_AND_SHARING.md). 호스트별 검증 상태: [COMPATIBILITY.md](COMPATIBILITY.md).
 
 ## 사전 조건
 
@@ -11,7 +11,7 @@ Python 3.10+. Windows에서 `python`/`py`가 Microsoft Store alias면 샌드박�
 ## 명령
 
 ```bash
-python $H --version                     # agent-handoff-manager core 0.2.0-pilot
+python $H --version                     # agent-handoff-manager core 0.3.0-pilot
 python $H --repo . init                 # .handoffs/sessions, .handoffs/archive 생성(멱등)
 python $H --repo . write --payload payload.json [--depth auto|minimal|rich|exhaustive]
 python $H --repo . list                 # 기본: open 세션

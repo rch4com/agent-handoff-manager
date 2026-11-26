@@ -7,7 +7,7 @@
       "name": "agent-handoff-manager",
       "source": "./",
       "description": "Save and resume verified work-in-progress handoffs between AI coding agents. EXPERIMENTAL pilot.",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "license": "MIT"
     }
   ]

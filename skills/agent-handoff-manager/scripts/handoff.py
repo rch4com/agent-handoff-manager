@@ -15,7 +15,7 @@ import sys
 import tempfile
 import time
 
-VERSION = '0.2.0-pilot'
+VERSION = '0.3.0-pilot'
 ID_RE = re.compile(r'^\d{8}T\d{6}Z-[0-9a-f]{12}$')
 AGENTS = {'claude-code', 'codex', 'opencode', 'antigravity', 'copilot', 'other'}
 VALIDATION = {'passed', 'failed', 'not_run', 'unknown'}

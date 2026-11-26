@@ -38,13 +38,14 @@ class BuildReleaseTests(unittest.TestCase):
         import sys
         with tempfile.TemporaryDirectory() as out:
             z, _ = self.build(out)
-            self.assertIn("0.2.0-pilot", z.name)
+            version = build_release.core_version(ROOT)
+            self.assertEqual(f"agent-handoff-manager-{version}.zip", z.name)
             dest = Path(out) / "x"
             zipfile.ZipFile(z).extractall(dest)
             r = subprocess.run([sys.executable, "-I", str(dest / "agent-handoff-manager" / "scripts" / "handoff.py"), "--version"],
                                capture_output=True, text=True)
             self.assertEqual(0, r.returncode, r.stderr)
-            self.assertIn("0.2.0-pilot", r.stdout)
+            self.assertEqual(f"agent-handoff-manager core {version}", r.stdout.strip())
 
     def test_refuses_dirty_or_unreadable_inputs(self):
         with tempfile.TemporaryDirectory() as empty:

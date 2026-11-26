@@ -1,6 +1,6 @@
 # 설치·공개 배포 매뉴얼 — agent-handoff-manager
 
-> 상태: **실험적 파일럿 (0.2.0-pilot)**. 아래 명령은 2026-11-07 Windows 11에서 실제로 실행해 결과를 확인한 것입니다(근거: `PROJECT_TRACKER.md` 검증 로그). 표시가 없는 항목은 미검증입니다. 릴리스 태그 `v0.2.0-pilot`의 pin 설치와 zip·SHA256SUMS 검증 기록이 있습니다. 문서 정리: 2026-11-13; 이번 정리는 새 원격 설치 시험이 아닙니다.
+> 상태: **실험적 소스 버전 (0.3.0-pilot)**. 아래 명령은 2026-11-07 Windows 11에서 실제로 실행해 결과를 확인한 것입니다(근거: `PROJECT_TRACKER.md` 검증 로그). 표시가 없는 항목은 미검증입니다. 릴리스 태그 `v0.2.0-pilot`의 pin 설치와 zip·SHA256SUMS 검증 기록이 있습니다. 문서 정리: 2026-11-13; 이번 정리는 새 원격 설치 시험이 아닙니다.
 
 ## 0. 이름과 배포 원칙
 
@@ -72,7 +72,7 @@ Claude Code와 GitHub Copilot CLI 모두 설치까지 확인했습니다(`docs/M
 ## 6. 설치 후 확인 절차
 
 1. 발견: Copilot CLI `copilot skill list`, OpenCode `opencode debug skill`, 나머지는 각 호스트에서 스킬 호출.
-2. 코어: `python <skill-dir>/scripts/handoff.py --version` -> `agent-handoff-manager core 0.2.0-pilot`.
+2. 코어: `python <skill-dir>/scripts/handoff.py --version` -> 소스 설치는 `agent-handoff-manager core 0.3.0-pilot`, `v0.2.0-pilot` 고정 설치는 `agent-handoff-manager core 0.2.0-pilot`.
 3. 임시 저장소에서 `write -> list -> resume latest -> archive --dry-run -> archive --confirm -> restore --confirm`(`docs/USER_GUIDE.md`).
 4. Windows 샌드박스 에이전트(Codex)는 Microsoft Store용 `python` alias를 실행하지 못할 수 있으니 실제 인터프리터 경로를 지정하세요.
 5. 호스트별 실제 결과는 `docs/COMPATIBILITY.md`에서만 확인하세요. 거기 "검증"으로 표시되지 않은 호스트·OS는 지원을 주장하지 않습니다.

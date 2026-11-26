@@ -1,6 +1,6 @@
 # agent-handoff-manager
 
-**Status: experimental local pilot (0.2.0-pilot).** The shared Python core has tests on Windows/Linux and several host runs on Windows 11. Linux/macOS host E2E and Copilot VS Code Agent remain unverified; Cloud Agent testing was skipped by the owner. Documentation reconciled on 2026-11-13; historical execution evidence is in `PROJECT_TRACKER.md`.
+**Status: experimental source version (0.3.0-pilot).** The shared Python core has tests on Windows/Linux and several host runs on Windows 11. Linux/macOS host E2E and Copilot VS Code Agent remain unverified; Cloud Agent testing was skipped by the owner. Documentation reconciled on 2026-11-13; historical execution evidence is in `PROJECT_TRACKER.md`.
 
 An Agent Skill for handing work over between AI coding agents (Claude Code, Codex CLI, OpenCode, Antigravity, GitHub Copilot). It keeps **verified long-term project state** separate from **per-session handoff records (claims)**. `resume` is read-only: it compares the record with the real git state and runs nothing from the record.
 

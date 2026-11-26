@@ -14,6 +14,11 @@ class VersionConsistencyTests(unittest.TestCase):
     def base(self):
         return handoff.VERSION.split("-")[0]
 
+    def test_skill_metadata_matches_core_base_version(self):
+        text = (ROOT / "skills/agent-handoff-manager/SKILL.md").read_text(encoding="utf-8")
+        frontmatter = text.split("---", 2)[1]
+        self.assertIn(f'\nmetadata:\n  version: "{self.base()}"\n', frontmatter)
+
     def test_manifests_match_core_version(self):
         paths = [".claude-plugin/plugin.json", "plugin.json"]
         for rel in paths:

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-handoff-manager",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Save and resume verified work-in-progress handoffs between AI coding agents. EXPERIMENTAL pilot; needs Python 3.10+.",
   "author": { "name": "rch4com" },
   "homepage": "https://github.com/rch4com/agent-handoff-manager",

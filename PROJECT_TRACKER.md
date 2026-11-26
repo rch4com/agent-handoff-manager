@@ -141,3 +141,14 @@
 - 추가 리뷰: 최종 크기 제한이 atomic_json의 UTF-8·indent·sort_keys·종단 개행과 일치하고 run/result 게시 전에 호출되는 것을 독립 확인; 남은 차단 지적 없음.
 - 한계: 실제 5개 호스트에서 신규 명령을 재시험하지 않았고 원격 설치·push·release를 하지 않음. source/request/result ID는 인증/분산 작업 선점이 아니며 Git 충돌 자동 해결은 없음. 실제 kill/power-loss/NFS는 미검증. `.pending-*`/남은 lock은 수동 점검, 자동 삭제 없음. 기존 파일럿 릴리스 태그에는 이번 확장이 없음.
 - 완료 감사: snapshot 보존, archive 후 제출, 멱등 재시도/충돌, 여러 작업자·재시도·통합 선택, 악성/손상 입력·기록, 끊긴 참조, 중단 중 읽기, subprocess 경합, cross-worktree 충돌, 설치 사본·문서 CLI 및 양 OS full suite를 위 테스트/리뷰로 확인. 다음 1개 작업은 변경분의 별도 릴리스 검토.
+
+## SKILL-DOC-01 — 스킬 설명 및 기본 예제 (2026-11-26)
+
+- 기준 커밋 `5434831`. `SKILL.md` 첫 문장에 호출 조건을 배치하고 최소 `write` → `resume` 예제를 추가. 예제 JSON과 CLI 명령을 Windows의 임시 Git 저장소에서 실행해 종료 코드 0, 같은 세션 ID, revision 1, 빈 `differences`와 `file_checks`를 확인. 문서 리뷰에서 `file_checks` 설명을 코어의 경로 존재 여부 및 유형 확인에 맞춤.
+- SkillEvaluator 1.0.1의 동일 정적 검사(`--no-llm --checks schema,version,pii,license,code-integrity,unicode,quality,lint,harness --skip secrets`) 종료 코드 0. 품질 81.5 → 84.5점(B), 발견 사항 21 → 16건. 게시 판정 `INCOMPLETE`.
+- `python -m unittest discover -s tests -q` 종료 코드 0. Windows 136개 중 129개 통과, 7개 건너뜀. WSL Linux 136개 중 135개 통과, 1개 건너뜀. `python scripts/validate_distribution.py`와 `git diff --check` 통과. 전체 보안 스캔과 실제 호스트 호출은 미검증.
+
+### 0.3.0-pilot 소스 버전 검증 (2026-11-26)
+
+- 코어·변경 이력은 `0.3.0-pilot`, 스킬 메타데이터·플러그인 매니페스트는 `0.3.0`. 문서 리뷰에서 현재 소스 버전과 기존 공개 태그를 구분하고 버전 일치 테스트를 추가. 추출한 ZIP의 코어가 ZIP 이름과 같은 전체 버전을 출력함을 확인.
+- 최종 `python -m unittest discover -s tests -q` 종료 코드 0. Windows 137개 중 130개 통과, 7개 건너뜀. WSL Linux 137개 중 136개 통과, 1개 건너뜀. 배포 구조 검사 및 동일 SkillEvaluator 정적 검사 통과(84.5점, 게시 판정 `INCOMPLETE`).

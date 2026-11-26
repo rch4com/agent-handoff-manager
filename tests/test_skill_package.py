@@ -49,7 +49,7 @@ class CleanCopyTests(unittest.TestCase):
             self.assertEqual(PAYLOAD, executions[0]['run']['source_snapshot']['payload'])
             run('restore', rec['id'], '--confirm')
             self.assertTrue(json.loads(run('doctor'))['ok'])
-            self.assertIn('0.2.0', run('--version') or '')  # argparse prints version to stdout on 3.4+
+            self.assertRegex(run('--version').strip(), r'^agent-handoff-manager core \d+\.\d+\.\d+-pilot$')
 
     def test_skill_md_matches_directory_and_is_self_contained(self):
         text = (SKILL / 'SKILL.md').read_text(encoding='utf-8')

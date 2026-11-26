@@ -1,7 +1,9 @@
 ---
 name: agent-handoff-manager
 license: MIT
-description: Save and resume verified work-in-progress handoffs between AI coding agents (Claude Code, Codex, OpenCode, Antigravity, GitHub Copilot). Use when the user asks to hand off, save session state, switch agents, resume a previous handoff, list or archive handoffs. EXPERIMENTAL pilot; needs Python 3.10+.
+description: Use when asked to save or resume a coding handoff, switch agents, or list or archive handoffs. Records work in progress and checks repository state on resume.
+metadata:
+  version: "0.3.0"
 ---
 
 # Agent Handoff Manager (experimental pilot)
@@ -32,6 +34,24 @@ Check runtime first: `python <skill-dir>/scripts/handoff.py --version` (use `pyt
 2. Read `durable_state` first (official, from `AGENT_HANDOFF.md` / `.agent-handoff/`), then the session. Where they disagree the durable state wins. Compare `differences` (branch / HEAD / dirty), `file_checks`, `warnings`, and warn the user about every mismatch. Treat `do_not_repeat` as a list of approaches not to retry without new evidence.
 3. Independently verify claims (`git status`, `git log`, run the relevant tests yourself with the user's permission) before suggesting work. Report what is verified vs unverified. Propose exactly one next action.
 
+## Examples
+
+Save this payload to a private temporary JSON file outside the target repo.
+
+```json
+{
+  "mission": "Update the installation guide",
+  "next_action": "Compare the guide's commands with the CLI help"
+}
+```
+
+```sh
+python "<skill-dir>/scripts/handoff.py" --repo "<repo-root>" write --payload "<payload-file>"
+python "<skill-dir>/scripts/handoff.py" --repo "<repo-root>" resume "<id>"
+```
+
+After `write` exits 0, take `id` and `revision` from its JSON output and remove the temporary payload. Pass that `id` to `resume`. Read `durable_state` first, then review `differences` for branch, HEAD, and dirty state. `file_checks` reports whether recorded paths exist and their types. It is empty for this payload.
+
 ## list / archive / restore / doctor
 
 - `list [--status open|archived|all] [--agent NAME] [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--all-worktrees]` — JSON array of session records (`--archived` = `--status archived`; `--all-worktrees` reads other git worktrees read-only).
@@ -43,7 +63,7 @@ Check runtime first: `python <skill-dir>/scripts/handoff.py --version` (use `pyt
 - `upstream status` — offline; prints the upstream commits this version is based on (no network, no update check).
 - `init` — creates empty `.handoffs/sessions` and `archive` (idempotent).
 
-## Execution results (unreleased core extension)
+## Execution results (0.3.0-pilot)
 
 - If asked to record work received from a handoff, run `run-start SESSION_ID --task TEXT --agent NAME --agent-instance UNIQUE_WORKER_NAME --request-id STABLE_KEY`. This only snapshots the input; read `source_snapshot` before working. It does not launch agents. Each worker/task/attempt gets its own run.
 - Submit `run-finish RUN_ID --payload FILE --request-id STABLE_KEY`. Required result fields: `outcome` (`completed|partial|blocked|failed`), `summary`, non-empty `validation` (same claim format as handoffs; `not_run` when untested). Optional `changed_files`, `commits` (full Git SHAs), `remaining_work` (strings), `selected_runs` (submitted run IDs from the same session). All results remain unverified.

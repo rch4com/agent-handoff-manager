@@ -1,6 +1,6 @@
 # agent-handoff-manager
 
-> 상태: **실험적 로컬 파일럿 (0.2.0-pilot)**. 공통 Python 코어는 Windows/Linux에서 테스트됐고 Windows 11에서 일부 호스트로 검증했습니다. Linux/macOS 호스트 E2E와 Copilot VS Code Agent는 미검증이며, Cloud Agent는 소유자 결정으로 시험을 건너뛰었습니다. 문서 정리 기준일 2026-11-13; 기존 실행 증거는 `PROJECT_TRACKER.md` 참조.
+> 상태: **실험적 소스 버전 (0.3.0-pilot)**. 공통 Python 코어는 Windows/Linux에서 테스트됐고 Windows 11에서 일부 호스트로 검증했습니다. Linux/macOS 호스트 E2E와 Copilot VS Code Agent는 미검증이며, Cloud Agent는 소유자 결정으로 시험을 건너뛰었습니다. 문서 정리 기준일 2026-11-13; 기존 실행 증거는 `PROJECT_TRACKER.md` 참조.
 
 서로 다른 AI 코딩 에이전트(Claude Code, Codex CLI, OpenCode, Antigravity, GitHub Copilot) 사이에서 작업을 이어받기 위한 Agent Skill 입니다. 프로젝트의 **검증된 장기 상태**와 **세션별 인계 기록(주장)** 을 분리하고, `resume`은 읽기 전용으로 실제 git 상태와 비교만 합니다.
 
